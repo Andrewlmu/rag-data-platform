@@ -55,7 +55,7 @@ Returns the most relevant document chunks with similarity scores.`,
         const formattedResults = results.map((result, index) => ({
           rank: index + 1,
           content: result.content.substring(0, 500), // Limit content length
-          similarity: result.similarity !== undefined ? result.similarity.toFixed(3) : 'N/A',
+          similarity: result.score !== undefined ? result.score.toFixed(3) : 'N/A',
           metadata: {
             filename: result.metadata?.filename || 'unknown',
             type: result.metadata?.type || 'unknown',
@@ -63,8 +63,7 @@ Returns the most relevant document chunks with similarity scores.`,
           },
         }));
 
-        const topSimilarity =
-          results[0].similarity !== undefined ? results[0].similarity.toFixed(3) : 'N/A';
+        const topSimilarity = results[0].score !== undefined ? results[0].score.toFixed(3) : 'N/A';
         console.log(
           `✅ Found ${results.length} relevant documents (best similarity: ${topSimilarity})`
         );

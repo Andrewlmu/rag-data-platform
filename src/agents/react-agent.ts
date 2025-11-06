@@ -370,9 +370,10 @@ export class ReactAgent {
         }
       }
 
-      // Extract reasoning trace
+      // Extract reasoning trace and sources
       const thoughts: string[] = [];
       const toolsUsed: string[] = [];
+      const sources: Source[] = [];
 
       for (const msg of result.messages) {
         if (msg instanceof AIMessage && msg.content) {
@@ -381,17 +382,36 @@ export class ReactAgent {
         if (msg instanceof AIMessage && msg.tool_calls) {
           toolsUsed.push(...msg.tool_calls.map(tc => tc.name));
         }
+
+        // Extract sources from vector_search tool results
+        if (msg instanceof ToolMessage && msg.name === 'vector_search') {
+          try {
+            const toolResult = JSON.parse(msg.content);
+            if (toolResult.found && toolResult.results) {
+              for (const result of toolResult.results) {
+                sources.push({
+                  chunk: result.content,
+                  filename: result.metadata?.filename || 'unknown',
+                  similarity: parseFloat(result.similarity) || 0,
+                });
+              }
+            }
+          } catch (e) {
+            // Ignore parsing errors
+          }
+        }
       }
 
       console.log(`\n${'='.repeat(60)}`);
       console.log(`✅ Agentic RAG Complete (${duration}ms)`);
       console.log(`   Loops: ${result.loopCount}`);
       console.log(`   Tools: ${[...new Set(toolsUsed)].join(', ') || 'none'}`);
+      console.log(`   Sources: ${sources.length} documents`);
       console.log(`${'='.repeat(60)}\n`);
 
       return {
         answer: answer,
-        sources: [], // Will be populated from vector search results
+        sources: sources,
         reasoning: {
           thoughts: thoughts,
           toolsUsed: [...new Set(toolsUsed)],

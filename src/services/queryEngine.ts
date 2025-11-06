@@ -60,13 +60,22 @@ export class QueryEngine {
         const agenticResult = await this.agenticRAG.query(query);
 
         // Convert agentic result to standard QueryResult format
+        // Calculate confidence based on sources (if we have sources with good similarity scores)
+        let confidence = 0.85; // Default high confidence for agentic
+        if (agenticResult.sources.length > 0) {
+          const avgSimilarity =
+            agenticResult.sources.reduce((sum, s) => sum + (s.similarity || 0), 0) /
+            agenticResult.sources.length;
+          confidence = Math.min(0.95, 0.7 + avgSimilarity * 0.25); // 70-95% range
+        }
+
         return {
           answer: agenticResult.answer,
           sources: agenticResult.sources.map(s => ({
             content: s.chunk,
             metadata: { filename: s.filename, similarity: s.similarity },
           })),
-          confidence: 0.9, // High confidence for agentic
+          confidence: confidence, // 0.85-0.95 for agentic (displayed as 85-95%)
           processingTime: agenticResult.metadata.duration,
           reasoning: agenticResult.reasoning,
         };
