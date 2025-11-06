@@ -14,6 +14,8 @@ import { DataProcessor } from '../services/dataProcessor';
 import { VectorSearchService } from '../services/vectorSearch';
 import { QueryEngine } from '../services/queryEngine';
 import { DocumentParser } from '../services/documentParser';
+import { DocumentStore } from '../services/documentStore';
+import { ParentChildRetriever } from '../services/parentChildRetriever';
 
 // Initialize Express app
 const app = express();
@@ -51,18 +53,39 @@ let dataProcessor: DataProcessor;
 let vectorSearch: VectorSearchService;
 let queryEngine: QueryEngine;
 let documentParser: DocumentParser;
+let documentStore: DocumentStore | null = null;
+let parentChildRetriever: ParentChildRetriever | null = null;
 
 // Async initialization
 async function initializeServices() {
   console.log('🚀 Initializing services with full async support...');
 
-  dataProcessor = new DataProcessor();
+  // Initialize DocumentStore first (for hierarchical chunking)
+  const useHierarchicalChunking = process.env.USE_HIERARCHICAL_CHUNKING === 'true';
+  if (useHierarchicalChunking) {
+    documentStore = new DocumentStore();
+    console.log('✅ Document store initialized (hierarchical mode)');
+  }
+
+  // Initialize core services with DocumentStore
+  dataProcessor = new DataProcessor(documentStore || undefined);
   vectorSearch = new VectorSearchService();
-  queryEngine = new QueryEngine(vectorSearch);
   documentParser = new DocumentParser();
 
   await vectorSearch.initialize();
   console.log('✅ Vector search initialized');
+
+  // Initialize ParentChildRetriever if hierarchical chunking is enabled
+  if (useHierarchicalChunking && documentStore) {
+    parentChildRetriever = new ParentChildRetriever(vectorSearch, documentStore);
+    console.log('✅ Parent-child retriever initialized');
+  }
+
+  // Initialize QueryEngine with hierarchical retriever (if available)
+  queryEngine = new QueryEngine(vectorSearch, parentChildRetriever || undefined);
+  console.log(
+    `✅ Query engine initialized${parentChildRetriever ? ' (with hierarchical retrieval)' : ''}`
+  );
 
   await dataProcessor.initialize();
   console.log('✅ Data processor initialized');
@@ -101,11 +124,8 @@ app.post('/api/upload', upload.array('files', 10), async (req: Request, res: Res
         // Parse document asynchronously
         const parsed = await documentParser.parseDocument(file);
 
-        // Process and index asynchronously
+        // Process and index asynchronously (includes vector store insertion)
         await dataProcessor.processDocument(parsed);
-
-        // Add to vector store asynchronously
-        await vectorSearch.addDocument(parsed);
 
         return {
           filename: file.originalname,
@@ -219,6 +239,7 @@ process.on('SIGINT', async () => {
   console.log('\nShutting down gracefully...');
   await vectorSearch?.cleanup();
   await dataProcessor?.cleanup();
+  documentStore?.clear();
   httpServer.close(() => {
     console.log('Server closed');
     process.exit(0);

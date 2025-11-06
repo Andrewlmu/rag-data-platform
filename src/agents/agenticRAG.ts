@@ -5,6 +5,7 @@
 
 import { ReactAgent } from './react-agent';
 import { VectorSearch } from '../services/vectorSearch';
+import { ParentChildRetriever } from '../services/parentChildRetriever';
 import { toolRegistry } from '../tools/tool-registry';
 import { createVectorSearchTool } from '../tools/vector-search-tool';
 import { createFinishTool } from '../tools/finish-tool';
@@ -14,10 +15,12 @@ import { agentConfig } from '../config/agent.config';
 export class AgenticRAG {
   private agent: ReactAgent;
   private vectorSearch: VectorSearch;
+  private parentChildRetriever: ParentChildRetriever | null = null;
   private initialized: boolean = false;
 
-  constructor(vectorSearch: VectorSearch) {
+  constructor(vectorSearch: VectorSearch, parentChildRetriever?: ParentChildRetriever) {
     this.vectorSearch = vectorSearch;
+    this.parentChildRetriever = parentChildRetriever || null;
     this.agent = new ReactAgent();
   }
 
@@ -33,9 +36,14 @@ export class AgenticRAG {
 
     // Register tools
     if (agentConfig.tools.vectorSearch.enabled) {
-      const vectorSearchTool = createVectorSearchTool(this.vectorSearch);
+      const vectorSearchTool = createVectorSearchTool(
+        this.vectorSearch,
+        this.parentChildRetriever || undefined
+      );
       toolRegistry.register(vectorSearchTool);
-      console.log('  ✅ Vector search tool registered');
+      console.log(
+        `  ✅ Vector search tool registered${this.parentChildRetriever ? ' (hierarchical)' : ''}`
+      );
     }
 
     // Register finish tool (required for ReAct)

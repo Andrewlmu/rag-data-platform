@@ -2,6 +2,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage, AIMessage } from '@langchain/core/messages';
 import { VectorSearchService } from './vectorSearch';
 import { AgenticRAG } from '../agents/agenticRAG';
+import { ParentChildRetriever, EnhancedSearchResult } from './parentChildRetriever';
 
 export interface QueryResult {
   answer: string;
@@ -21,15 +22,17 @@ export interface QueryResult {
 export class QueryEngine {
   private llm: ChatOpenAI;
   private vectorSearch: VectorSearchService;
+  private parentChildRetriever: ParentChildRetriever | null = null;
   private agenticRAG: AgenticRAG | null = null;
 
-  constructor(vectorSearch: VectorSearchService) {
+  constructor(vectorSearch: VectorSearchService, parentChildRetriever?: ParentChildRetriever) {
     this.vectorSearch = vectorSearch;
+    this.parentChildRetriever = parentChildRetriever || null;
 
     // Initialize Agentic RAG if enabled
     if (process.env.USE_AGENTIC_RAG === 'true') {
       try {
-        this.agenticRAG = new AgenticRAG(vectorSearch);
+        this.agenticRAG = new AgenticRAG(vectorSearch, parentChildRetriever);
         console.log('🤖 Agentic RAG enabled');
       } catch (error) {
         console.error('❌ Failed to initialize Agentic RAG:', error);
@@ -90,7 +93,18 @@ export class QueryEngine {
     console.log('📄 Using Basic RAG');
 
     try {
-      // Search for relevant documents asynchronously
+      // Use hierarchical retrieval if available, otherwise fallback to standard search
+      if (this.parentChildRetriever) {
+        console.log('   Using hierarchical retrieval (parent-child)');
+        const enhancedResults = await this.parentChildRetriever.retrieve(query, 10, filters);
+        const context = this.buildHierarchicalContext(enhancedResults);
+
+        // Build QueryResult from enhanced results
+        return await this.buildQueryResultFromEnhanced(query, enhancedResults, context, startTime);
+      }
+
+      // Standard search (fallback)
+      console.log('   Using standard search');
       const searchResults = await this.vectorSearch.search(query, 10, filters);
 
       // Build context from search results
@@ -296,5 +310,100 @@ ${result.content}
     }
 
     return recommendations.slice(0, 5); // Return top 5 recommendations
+  }
+
+  /**
+   * Build context from hierarchical (parent-child) search results
+   * Includes both matched child chunks and full parent context
+   */
+  private buildHierarchicalContext(results: EnhancedSearchResult[]): string {
+    if (results.length === 0) {
+      return 'No relevant documents found in the database.';
+    }
+
+    return results
+      .map((result, index) => {
+        const hierarchyPath = result.hierarchyPath?.join(' > ') || 'Unknown';
+        const filename = result.childMetadata.filename || 'Unknown';
+        const section = result.section || 'No section';
+
+        // Build context with both child (matched) and parent (full context)
+        let contextStr = `[Source ${index + 1}] ${filename} > ${section}
+Hierarchy: ${hierarchyPath}
+
+📍 Matched Section (Similarity: ${result.childSimilarity.toFixed(3)}):
+${result.childChunk}`;
+
+        // Add parent context if available (provides surrounding context)
+        if (result.parentChunk) {
+          contextStr += `
+
+📄 Full Context (Parent Chunk):
+${result.parentChunk}`;
+        }
+
+        contextStr += '\n---';
+        return contextStr;
+      })
+      .join('\n\n');
+  }
+
+  /**
+   * Build QueryResult from enhanced hierarchical results
+   */
+  private async buildQueryResultFromEnhanced(
+    query: string,
+    enhancedResults: EnhancedSearchResult[],
+    context: string,
+    startTime: number
+  ): Promise<QueryResult> {
+    // Create the prompt with hierarchical context
+    const systemPrompt = `You are an expert Private Equity analyst with deep knowledge of financial analysis, due diligence, and investment evaluation. You have access to a comprehensive database of PE-related documents and data.
+
+Your task is to provide accurate, insightful answers based on the provided context. The context includes both:
+1. Precisely matched sections (marked with 📍) - these are the most relevant chunks
+2. Full parent context (marked with 📄) - this provides complete surrounding information
+
+Always:
+1. Be specific and cite the relevant sources
+2. Highlight key financial metrics when relevant
+3. Identify risks and opportunities
+4. Provide actionable insights
+5. Acknowledge if information is incomplete or unclear
+
+You are powered by GPT-5, the most advanced AI model as of November 2025.
+
+Context from the database:
+${context}`;
+
+    const userPrompt = `Question: ${query}
+
+Please provide a comprehensive answer based on the available data.`;
+
+    // Get response from GPT-5
+    const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
+    const response = await this.llm.invoke(messages);
+
+    // Calculate confidence based on child similarities
+    const avgSimilarity =
+      enhancedResults.reduce((sum, r) => sum + r.childSimilarity, 0) / enhancedResults.length;
+    const confidence = Math.round(Math.min(95, 70 + avgSimilarity * 25)); // 70-95% range
+
+    const processingTime = Date.now() - startTime;
+
+    return {
+      answer: response.content.toString(),
+      sources: enhancedResults.slice(0, 5).map(r => ({
+        content: r.parentChunk || r.childChunk, // Prefer parent for full context
+        metadata: {
+          ...r.childMetadata,
+          section: r.section,
+          hierarchyPath: r.hierarchyPath?.join(' > '),
+          similarity: r.childSimilarity,
+        },
+      })),
+      confidence,
+      processingTime,
+    };
   }
 }

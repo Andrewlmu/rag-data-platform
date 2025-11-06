@@ -2,6 +2,9 @@ import { VectorSearchService } from './vectorSearch';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DocumentParser, ParsedDocument } from './documentParser';
+import { HierarchicalChunker } from './hierarchicalChunker';
+import { DocumentStore } from './documentStore';
+import type { HierarchicalChunk } from '../types/hierarchical.types';
 
 export interface DataStats {
   totalDocuments: number;
@@ -18,10 +21,22 @@ export interface DataStats {
 export class DataProcessor {
   private vectorSearch: VectorSearchService | null = null;
   private documentParser: DocumentParser;
+  private hierarchicalChunker: HierarchicalChunker | null = null;
+  private documentStore: DocumentStore | null = null;
+  private useHierarchicalChunking: boolean;
   private stats: DataStats;
 
-  constructor() {
+  constructor(documentStore?: DocumentStore) {
     this.documentParser = new DocumentParser();
+    this.documentStore = documentStore || null;
+    this.useHierarchicalChunking = process.env.USE_HIERARCHICAL_CHUNKING === 'true';
+
+    // Initialize hierarchical chunker if enabled
+    if (this.useHierarchicalChunking && this.documentStore) {
+      this.hierarchicalChunker = new HierarchicalChunker();
+      console.log('📊 Hierarchical chunking enabled');
+    }
+
     this.stats = {
       totalDocuments: 0,
       totalChunks: 0,
@@ -69,18 +84,70 @@ export class DataProcessor {
       throw new Error('Data processor not initialized');
     }
 
-    // Add to vector store
-    await this.vectorSearch.addDocument(doc);
+    // Check if hierarchical chunking is enabled
+    if (this.useHierarchicalChunking && this.hierarchicalChunker && this.documentStore) {
+      await this.processWithHierarchicalChunking(doc);
+    } else {
+      // Standard chunking (original behavior)
+      await this.vectorSearch.addDocument(doc);
 
-    // Update statistics
+      this.stats.totalDocuments++;
+      this.stats.totalChunks += doc.chunks.length;
+
+      const docType = doc.metadata.type;
+      this.stats.documentTypes[docType] = (this.stats.documentTypes[docType] || 0) + 1;
+      this.stats.lastUpdated = new Date().toISOString();
+
+      console.log(`✅ Processed document: ${doc.metadata.filename}`);
+    }
+  }
+
+  /**
+   * Process document with hierarchical chunking (parent-child)
+   */
+  private async processWithHierarchicalChunking(doc: ParsedDocument): Promise<void> {
+    console.log(`📊 Processing with hierarchical chunking: ${doc.metadata.filename}`);
+
+    // Create hierarchical chunks from document content
+    const { parents, children, stats } = await this.hierarchicalChunker!.createHierarchicalChunks(
+      doc.content,
+      doc.id,
+      doc.metadata.filename
+    );
+
+    // Step 1: Store parent chunks in document store
+    this.documentStore!.addMany(parents);
+
+    // Step 2: Convert children to format expected by vectorSearch
+    const childChunks = children.map(child => ({
+      text: child.content,
+      metadata: {
+        ...child.metadata,
+        parentId: child.parentId, // Critical: link to parent!
+        chunkType: 'child',
+      },
+    }));
+
+    // Step 3: Add children to vector store (for search)
+    await this.vectorSearch!.addDocument({
+      id: doc.id,
+      content: doc.content,
+      metadata: doc.metadata,
+      chunks: childChunks,
+    });
+
+    // Step 4: Update statistics
     this.stats.totalDocuments++;
-    this.stats.totalChunks += doc.chunks.length;
+    this.stats.totalChunks += children.length;
 
     const docType = doc.metadata.type;
     this.stats.documentTypes[docType] = (this.stats.documentTypes[docType] || 0) + 1;
     this.stats.lastUpdated = new Date().toISOString();
 
-    console.log(`✅ Processed document: ${doc.metadata.filename}`);
+    console.log(`✅ Processed with hierarchical chunking:`);
+    console.log(`   - ${stats.totalParents} parent chunks`);
+    console.log(`   - ${stats.totalChildren} child chunks`);
+    console.log(`   - ${stats.sectionsDetected} sections detected`);
   }
 
   async loadSampleData(): Promise<void> {

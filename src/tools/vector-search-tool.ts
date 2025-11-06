@@ -1,22 +1,26 @@
 /**
  * VectorSearchTool - Wraps VectorSearch service as an agent tool
- * Allows agent to search the document vector database
+ * Supports hierarchical retrieval (parent-child) when available
  */
 
 import type { AgentTool } from '../types/agent.types';
 import { VectorSearch } from '../services/vectorSearch';
+import { ParentChildRetriever } from '../services/parentChildRetriever';
 import { agentConfig } from '../config/agent.config';
 
 /**
- * Create vector search tool
+ * Create vector search tool with optional hierarchical retrieval
  */
-export function createVectorSearchTool(vectorSearch: VectorSearch): AgentTool {
+export function createVectorSearchTool(
+  vectorSearch: VectorSearch,
+  parentChildRetriever?: ParentChildRetriever
+): AgentTool {
   return {
     name: 'vector_search',
 
     description: `Search the document vector database for relevant information about PE deals, companies, financial data, and documents.
 Use this tool when you need to find information from existing uploaded documents.
-Returns the most relevant document chunks with similarity scores.`,
+Returns the most relevant document chunks with similarity scores${parentChildRetriever ? ' and full parent context' : ''}.`,
 
     parameters: {
       type: 'object',
@@ -41,6 +45,48 @@ Returns the most relevant document chunks with similarity scores.`,
       console.log(`🔍 Vector search: "${query}" (max: ${maxResults})`);
 
       try {
+        // Use hierarchical retrieval if available
+        if (parentChildRetriever) {
+          console.log('   Using hierarchical retrieval (parent-child)');
+          const enhancedResults = await parentChildRetriever.retrieve(query, maxResults);
+
+          if (!enhancedResults || enhancedResults.length === 0) {
+            return {
+              found: false,
+              message: `No relevant documents found for query: "${query}"`,
+              results: [],
+            };
+          }
+
+          // Format hierarchical results for agent
+          const formattedResults = enhancedResults.map((result, index) => ({
+            rank: index + 1,
+            childChunk: result.childChunk.substring(0, 300),
+            parentChunk: result.parentChunk ? result.parentChunk.substring(0, 700) : undefined,
+            similarity: result.childSimilarity.toFixed(3),
+            metadata: {
+              filename: result.childMetadata.filename || 'unknown',
+              section: result.section || 'unknown',
+              hierarchyPath: result.hierarchyPath?.join(' > ') || 'unknown',
+            },
+          }));
+
+          const topSimilarity = enhancedResults[0].childSimilarity.toFixed(3);
+          console.log(
+            `✅ Found ${enhancedResults.length} hierarchical results (best similarity: ${topSimilarity})`
+          );
+
+          return {
+            found: true,
+            count: enhancedResults.length,
+            results: formattedResults,
+            hierarchical: true,
+            summary: `Found ${enhancedResults.length} relevant sections with full context. Top result from ${enhancedResults[0].childMetadata.filename || 'unknown'} (${enhancedResults[0].section || 'unknown section'}) with similarity ${topSimilarity}.`,
+          };
+        }
+
+        // Fallback to standard search
+        console.log('   Using standard search');
         const results = await vectorSearch.search(query, maxResults);
 
         if (!results || results.length === 0) {
@@ -72,6 +118,7 @@ Returns the most relevant document chunks with similarity scores.`,
           found: true,
           count: results.length,
           results: formattedResults,
+          hierarchical: false,
           summary: `Found ${results.length} relevant documents. Top result from ${results[0].metadata?.filename || 'unknown'} with similarity ${topSimilarity}.`,
         };
       } catch (error: any) {
