@@ -54,9 +54,7 @@ Example: "quarterly financials" → finds tables with quarterly financial data`,
         const results = await vectorSearch.search(query, maxResults);
 
         // Filter to only metadata documents
-        const metadataResults = results.filter(r =>
-          r.metadata?.type === 'dataset_metadata'
-        );
+        const metadataResults = results.filter(r => r.metadata?.type === 'dataset_metadata');
 
         if (metadataResults.length === 0) {
           return {

@@ -22,7 +22,11 @@ export class AgenticRAG {
   private dataProcessor: DataProcessor | null = null;
   private initialized: boolean = false;
 
-  constructor(vectorSearch: VectorSearch, parentChildRetriever?: ParentChildRetriever, dataProcessor?: DataProcessor) {
+  constructor(
+    vectorSearch: VectorSearch,
+    parentChildRetriever?: ParentChildRetriever,
+    dataProcessor?: DataProcessor
+  ) {
     this.vectorSearch = vectorSearch;
     this.parentChildRetriever = parentChildRetriever || null;
     this.dataProcessor = dataProcessor || null;

@@ -21,15 +21,20 @@ export class MetadataGenerator {
     console.log(`🧠 Generating metadata for ${data.filename}...`);
 
     // Build schema description
-    const schemaDescription = data.headers.map((header, i) => {
-      const columnAnalysis = analyzeColumn(data.rows, header);
-      return `- ${header} (${data.types[i]}): ${columnAnalysis}`;
-    }).join('\n');
+    const schemaDescription = data.headers
+      .map((header, i) => {
+        const columnAnalysis = analyzeColumn(data.rows, header);
+        return `- ${header} (${data.types[i]}): ${columnAnalysis}`;
+      })
+      .join('\n');
 
     // Format sample rows
-    const sampleRowsFormatted = data.sampleRows.slice(0, 5).map(row => {
-      return data.headers.map(h => `${h}: ${row[h]}`).join(', ');
-    }).join('\n');
+    const sampleRowsFormatted = data.sampleRows
+      .slice(0, 5)
+      .map(row => {
+        return data.headers.map(h => `${h}: ${row[h]}`).join(', ');
+      })
+      .join('\n');
 
     // Build prompt
     const prompt = `You are analyzing a structured dataset for a Private Equity analysis system.
@@ -60,12 +65,13 @@ Table Name: ${tableName}`;
     try {
       const messages = [
         new SystemMessage('You are a data analyst specializing in private equity portfolio data.'),
-        new HumanMessage(prompt)
+        new HumanMessage(prompt),
       ];
 
       const response = await this.llm.invoke(messages);
 
-      const metadata = typeof response.content === 'string' ? response.content : String(response.content);
+      const metadata =
+        typeof response.content === 'string' ? response.content : String(response.content);
 
       console.log(`✅ Generated metadata (${metadata.length} characters)`);
 

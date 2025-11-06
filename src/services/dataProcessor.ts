@@ -213,22 +213,24 @@ export class DataProcessor {
         columnCount: parsedData.columnCount,
         schema: parsedData.headers.map((col, i) => ({
           name: col,
-          type: parsedData.types[i]
+          type: parsedData.types[i],
         })),
         parsedAt: new Date().toISOString(),
       },
-      chunks: [{
-        text: metadata,
-        metadata: {
-          type: 'dataset_metadata',
-          tableId: tableName,
-          filename: filename,
-          schema: parsedData.headers.map((col, i) => ({
-            name: col,
-            type: parsedData.types[i]
-          }))
-        }
-      }]
+      chunks: [
+        {
+          text: metadata,
+          metadata: {
+            type: 'dataset_metadata',
+            tableId: tableName,
+            filename: filename,
+            schema: parsedData.headers.map((col, i) => ({
+              name: col,
+              type: parsedData.types[i],
+            })),
+          },
+        },
+      ],
     });
 
     // Update stats

@@ -16,7 +16,7 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
       header: true,
       dynamicTyping: false, // We'll do our own type inference
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: results => {
         try {
           const headers = results.meta.fields || [];
           const rows = results.data as any[];
@@ -27,7 +27,7 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
           // Get sample rows (first 5 + last 5)
           const sampleRows = [
             ...rows.slice(0, Math.min(5, rows.length)),
-            ...(rows.length > 10 ? rows.slice(-5) : [])
+            ...(rows.length > 10 ? rows.slice(-5) : []),
           ];
 
           resolve({
@@ -37,15 +37,15 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
             rowCount: rows.length,
             columnCount: headers.length,
             types,
-            sampleRows
+            sampleRows,
           });
         } catch (error) {
           reject(error);
         }
       },
-      error: (error) => {
+      error: error => {
         reject(error);
-      }
+      },
     });
   });
 }
@@ -55,15 +55,13 @@ function inferTypes(rows: any[], headers: string[]): string[] {
     return headers.map(() => 'TEXT');
   }
 
-  return headers.map((header) => {
+  return headers.map(header => {
     // Sample up to 100 rows for type inference
     const sampleSize = Math.min(100, rows.length);
     const samples = rows.slice(0, sampleSize).map(row => row[header]);
 
     // Filter out null/undefined/empty values
-    const validSamples = samples.filter(val =>
-      val !== null && val !== undefined && val !== ''
-    );
+    const validSamples = samples.filter(val => val !== null && val !== undefined && val !== '');
 
     if (validSamples.length === 0) {
       return 'TEXT';
@@ -90,8 +88,8 @@ function inferTypes(rows: any[], headers: string[]): string[] {
     }
 
     // Check if all values are booleans
-    const allBooleans = validSamples.every(val =>
-      String(val).toLowerCase() === 'true' || String(val).toLowerCase() === 'false'
+    const allBooleans = validSamples.every(
+      val => String(val).toLowerCase() === 'true' || String(val).toLowerCase() === 'false'
     );
 
     if (allBooleans) {
@@ -108,9 +106,9 @@ export function analyzeColumn(rows: any[], header: string): string {
     return 'No data';
   }
 
-  const values = rows.map(row => row[header]).filter(val =>
-    val !== null && val !== undefined && val !== ''
-  );
+  const values = rows
+    .map(row => row[header])
+    .filter(val => val !== null && val !== undefined && val !== '');
 
   if (values.length === 0) {
     return 'All NULL';

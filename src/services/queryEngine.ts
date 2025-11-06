@@ -26,7 +26,11 @@ export class QueryEngine {
   private parentChildRetriever: ParentChildRetriever | null = null;
   private agenticRAG: AgenticRAG | null = null;
 
-  constructor(vectorSearch: VectorSearchService, parentChildRetriever?: ParentChildRetriever, dataProcessor?: DataProcessor) {
+  constructor(
+    vectorSearch: VectorSearchService,
+    parentChildRetriever?: ParentChildRetriever,
+    dataProcessor?: DataProcessor
+  ) {
     this.vectorSearch = vectorSearch;
     this.parentChildRetriever = parentChildRetriever || null;
 

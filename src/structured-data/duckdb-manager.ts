@@ -26,10 +26,12 @@ export class DuckDBManager {
     const tableName = sanitizeTableName(data.filename);
 
     // Generate CREATE TABLE statement
-    const columns = data.headers.map((header, i) => {
-      const type = data.types[i];
-      return `"${header}" ${type}`;
-    }).join(', ');
+    const columns = data.headers
+      .map((header, i) => {
+        const type = data.types[i];
+        return `"${header}" ${type}`;
+      })
+      .join(', ');
 
     const createSQL = `CREATE TABLE IF NOT EXISTS ${tableName} (${columns})`;
 
@@ -49,7 +51,7 @@ export class DuckDBManager {
       filename: data.filename,
       headers: data.headers,
       types: data.types,
-      rowCount: data.rowCount
+      rowCount: data.rowCount,
     });
 
     console.log(`✅ Table created: ${tableName} (${data.rowCount} rows)`);
@@ -111,7 +113,7 @@ export class DuckDBManager {
       return {
         success: true,
         results,
-        rowCount: results.length
+        rowCount: results.length,
       };
     } catch (error: any) {
       console.error(`❌ Query error: ${error.message}`);
