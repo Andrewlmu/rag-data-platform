@@ -55,23 +55,25 @@ Returns the most relevant document chunks with similarity scores.`,
         const formattedResults = results.map((result, index) => ({
           rank: index + 1,
           content: result.content.substring(0, 500), // Limit content length
-          similarity: result.similarity.toFixed(3),
+          similarity: result.similarity !== undefined ? result.similarity.toFixed(3) : 'N/A',
           metadata: {
-            filename: result.metadata.filename,
-            type: result.metadata.type,
-            chunkIndex: result.metadata.chunkIndex,
+            filename: result.metadata?.filename || 'unknown',
+            type: result.metadata?.type || 'unknown',
+            chunkIndex: result.metadata?.chunkIndex || 0,
           },
         }));
 
+        const topSimilarity =
+          results[0].similarity !== undefined ? results[0].similarity.toFixed(3) : 'N/A';
         console.log(
-          `✅ Found ${results.length} relevant documents (best similarity: ${results[0].similarity.toFixed(3)})`
+          `✅ Found ${results.length} relevant documents (best similarity: ${topSimilarity})`
         );
 
         return {
           found: true,
           count: results.length,
           results: formattedResults,
-          summary: `Found ${results.length} relevant documents. Top result from ${results[0].metadata.filename} with similarity ${results[0].similarity.toFixed(3)}.`,
+          summary: `Found ${results.length} relevant documents. Top result from ${results[0].metadata?.filename || 'unknown'} with similarity ${topSimilarity}.`,
         };
       } catch (error: any) {
         console.error('❌ Vector search failed:', error);

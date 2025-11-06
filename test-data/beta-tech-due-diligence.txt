@@ -1,0 +1,83 @@
+DUE DILIGENCE REPORT - CONFIDENTIAL
+
+Target: Beta Technologies Inc.
+PE Firm: Summit Equity Partners
+Industry: Enterprise Software (SaaS)
+Report Date: October 15, 2025
+
+COMMERCIAL DUE DILIGENCE
+
+Market Analysis:
+- TAM (Total Addressable Market): $12.5B
+- Beta's current market share: 8%
+- Market growth rate: 18% CAGR
+- Competitive landscape: 4 major players + fragmented long tail
+
+Customer Analysis:
+- Total customers: 1,250
+- Enterprise customers (>$100K ARR): 180 (contributing 72% of revenue)
+- Net Revenue Retention (NRR): 118%
+- Customer acquisition cost (CAC): $45K
+- Lifetime value (LTV): $380K
+- LTV/CAC ratio: 8.4x (excellent)
+
+Product Analysis:
+- Core platform: Cloud-based supply chain optimization
+- Competitive moat: Proprietary ML algorithms with 7 years of training data
+- Product roadmap: AI-powered demand forecasting (launch Q2 2026)
+- Integration ecosystem: 35+ pre-built connectors
+
+FINANCIAL DUE DILIGENCE
+
+Historical Performance:
+2023: ARR $85M, Revenue $82M, EBITDA $12M (14.6% margin)
+2024: ARR $118M, Revenue $115M, EBITDA $21M (18.3% margin)
+2025 (projected): ARR $165M, Revenue $160M, EBITDA $35M (21.9% margin)
+
+Rule of 40:
+- Revenue growth: 39%
+- EBITDA margin: 22%
+- Rule of 40 score: 61 (excellent for SaaS)
+
+Cash Flow:
+- Operating cash flow (2024): $28M
+- Free cash flow (2024): $23M
+- Cash conversion rate: 110%
+
+OPERATIONAL DUE DILIGENCE
+
+Technology Stack:
+- Cloud infrastructure: AWS (multi-region)
+- Backend: Python/Django, PostgreSQL
+- Frontend: React, TypeScript
+- DevOps: Kubernetes, CI/CD pipeline
+- Security: SOC 2 Type II, ISO 27001 certified
+
+Team Assessment:
+- Total employees: 285
+- Engineering: 120 (42%)
+- Sales & Marketing: 85 (30%)
+- Turnover rate: 12% (industry average: 18%)
+- Glassdoor rating: 4.3/5.0
+
+LEGAL DUE DILIGENCE
+
+Key Findings:
+- IP: 12 patents filed, 8 granted
+- Litigation: No material ongoing disputes
+- Contracts: Standard enterprise SaaS agreements
+- Compliance: GDPR, SOC 2, HIPAA ready
+- Data privacy: Robust policies in place
+
+RED FLAGS & CONCERNS
+
+1. MODERATE: Founder CEO wants to exit completely
+2. LOW: Two enterprise customers up for renewal (represent 8% ARR)
+3. MODERATE: Sales team scaling challenges
+4. LOW: Technical debt in legacy modules
+
+RECOMMENDATION: PROCEED WITH ACQUISITION
+Proposed valuation: 10x ARR = $1.65B enterprise value
+Investment structure: $500M equity + $200M credit facility
+Expected holding period: 4-6 years
+Target exit: IPO or strategic sale at 12-15x ARR

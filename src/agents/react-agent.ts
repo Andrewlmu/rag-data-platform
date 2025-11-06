@@ -34,6 +34,9 @@ export class ReactAgent {
   private graph: any;
 
   constructor() {
+    console.log('🔍 AgentConfig.llm.model:', agentConfig.llm.model);
+    console.log('🔍 process.env.LLM_MODEL:', process.env.LLM_MODEL);
+
     // Initialize LLM with function calling
     this.llm = new ChatOpenAI({
       model: agentConfig.llm.model,
@@ -44,7 +47,7 @@ export class ReactAgent {
     // Build the graph
     this.graph = this.buildGraph();
 
-    console.log('🤖 ReAct Agent initialized with LangGraph');
+    console.log(`🤖 ReAct Agent initialized with LangGraph (model: ${agentConfig.llm.model})`);
   }
 
   /**
@@ -75,20 +78,24 @@ export class ReactAgent {
         end: END,
       });
 
-    return workflow.compile();
+    // Compile with increased recursion limit
+    return workflow.compile({
+      recursionLimit: 50, // Allow more loops for complex reasoning
+    });
   }
 
   /**
    * LLM Node - Agent reasoning
    */
   private async llmNode(state: typeof StateAnnotation.State) {
-    if (loggingConfig.traceSteps) {
-      console.log(`\n🧠 LLM Node (Loop ${state.loopCount + 1}/${agentConfig.maxLoops})`);
-    }
+    // ALWAYS log (ignore traceSteps for debugging)
+    console.log(`\n🧠 LLM Node (Loop ${state.loopCount + 1}/${agentConfig.maxLoops})`);
+    console.log(`🔍 traceSteps: ${loggingConfig.traceSteps}`);
 
     try {
       // Get available tools in OpenAI format
       const tools = toolRegistry.getOpenAITools();
+      console.log(`🔍 tools.length: ${tools.length}`);
 
       // Build messages
       const messages: BaseMessage[] = [
@@ -108,12 +115,69 @@ export class ReactAgent {
       }
 
       // Call LLM with tools
-      const response = await this.llm.invoke(messages, {
+      console.log(`🔍 Calling LLM with ${messages.length} messages and ${tools.length} tools...`);
+      console.log(`🔍 Messages being sent:`);
+      messages.forEach((msg, i) => {
+        const content = msg.content?.toString() || '[no content]';
+        console.log(`  ${i + 1}. ${msg._getType()}: ${content.substring(0, 100)}...`);
+      });
+      console.log(`🔍 Tools being sent:`, JSON.stringify(tools, null, 2).substring(0, 500));
+
+      // FIX: Bind tools to the model with explicit tool_choice (critical for function calling!)
+      const llmWithTools = this.llm.bind({
         tools: tools,
+        tool_choice: 'auto', // Explicitly enable tool calling
       });
 
-      if (loggingConfig.traceSteps && response.content) {
-        console.log(`💭 Agent thinking: ${response.content.toString().substring(0, 150)}...`);
+      console.log(`🔍 Bound model with tools, invoking...`);
+
+      const response = await llmWithTools.invoke(messages);
+
+      console.log(`🔍 Raw response:`, JSON.stringify(response, null, 2).substring(0, 1000));
+
+      // FIX: Parse tool calls from additional_kwargs if not in top-level
+      // This is needed for older LangChain versions
+      if (
+        (!response.tool_calls || response.tool_calls.length === 0) &&
+        response.additional_kwargs?.tool_calls?.length > 0
+      ) {
+        console.log(
+          `🔧 Parsing tool calls from additional_kwargs (LangChain version compatibility fix)`
+        );
+
+        response.tool_calls = response.additional_kwargs.tool_calls.map((tc: any) => ({
+          id: tc.id,
+          name: tc.function.name,
+          args: JSON.parse(tc.function.arguments),
+        }));
+
+        console.log(`✅ Parsed ${response.tool_calls.length} tool call(s) from additional_kwargs`);
+      }
+
+      // ALWAYS log (ignore traceSteps for debugging)
+      console.log(`🔍 LLM responded!`);
+      console.log(`🔍 Response type: ${typeof response}`);
+      console.log(`🔍 Response keys: ${Object.keys(response)}`);
+      console.log(`🔍 response.tool_calls:`, response.tool_calls);
+
+      if (response.content) {
+        const content = response.content.toString();
+        console.log(
+          `💭 Agent response content (${content.length} chars): ${content.substring(0, 200)}...`
+        );
+      } else {
+        console.log(`💭 Agent response has NO content`);
+      }
+
+      // Log tool calls if any
+      if (response.tool_calls && response.tool_calls.length > 0) {
+        console.log(`🔧 LLM wants to call ${response.tool_calls.length} tool(s):`);
+        response.tool_calls.forEach(tc => {
+          console.log(`   → ${tc.name}(${JSON.stringify(tc.args).substring(0, 100)})`);
+        });
+      } else {
+        console.log(`❌ LLM made NO tool calls - will finish immediately`);
+        console.log(`❌ This means the LLM responded with text instead of calling tools!`);
       }
 
       return {
@@ -279,8 +343,17 @@ export class ReactAgent {
         error: null,
       };
 
+      console.log('🔍 DEBUG: Initial state:', initialState);
+      console.log('🔍 DEBUG: About to invoke graph...');
+
       // Run graph
       const result = await this.graph.invoke(initialState);
+
+      console.log('🔍 DEBUG: Graph returned result');
+      console.log('🔍 DEBUG: Result keys:', Object.keys(result));
+      console.log('🔍 DEBUG: Result.loopCount:', result.loopCount);
+      console.log('🔍 DEBUG: Result.messages.length:', result.messages?.length);
+      console.log('🔍 DEBUG: Result.answer:', result.answer?.substring(0, 100));
 
       const duration = Date.now() - startTime;
 

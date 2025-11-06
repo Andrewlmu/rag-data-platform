@@ -1,0 +1,49 @@
+CONFIDENTIAL - DEAL MEMORANDUM
+
+Company: ACME Manufacturing Corp.
+Deal Type: Leveraged Buyout (LBO)
+Date: November 1, 2025
+Fund: Titan Capital Partners III
+
+EXECUTIVE SUMMARY
+Titan Capital Partners proposes to acquire 100% of ACME Manufacturing Corp for an enterprise value of $450 million. ACME is a leading manufacturer of industrial components with strong market position and consistent cash flows.
+
+KEY METRICS
+- Enterprise Value: $450M
+- Equity Investment: $180M (40%)
+- Debt Financing: $270M (60%)
+- Revenue (LTM): $320M
+- EBITDA (LTM): $65M
+- Entry Multiple: 6.9x EBITDA
+- Projected IRR: 23-27%
+- Holding Period: 5 years
+
+INVESTMENT THESIS
+1. Market leader in industrial automation components (32% market share)
+2. Recurring revenue model (60% of sales from maintenance contracts)
+3. Strong operational improvement opportunities
+4. Roll-up strategy: acquire 3-4 smaller competitors
+5. International expansion into Asian markets
+
+FINANCIAL PROJECTIONS
+Year 1: Revenue $340M, EBITDA $72M (22.4% margin)
+Year 2: Revenue $385M, EBITDA $85M (22.1% margin)
+Year 3: Revenue $440M, EBITDA $101M (23.0% margin)
+Year 4: Revenue $510M, EBITDA $122M (23.9% margin)
+Year 5: Revenue $595M, EBITDA $149M (25.0% margin)
+
+EXIT STRATEGY
+Target exit multiple: 8.5x EBITDA
+Projected exit value: $1,267M (at Year 5 EBITDA)
+Expected return: 3.5x MOIC, 28% IRR
+
+RISKS
+- Customer concentration (top 3 customers = 45% revenue)
+- Competitive pressure from Chinese manufacturers
+- Cyclical industry exposure
+- Key person risk (CEO succession)
+
+TEAM
+CEO: Michael Chen (15 years experience)
+CFO: Sarah Williams (PE background, ex-McKinsey)
+COO: James Rodriguez (operational excellence, Lean Six Sigma)

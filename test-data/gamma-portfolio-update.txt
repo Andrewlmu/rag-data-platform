@@ -1,0 +1,108 @@
+QUARTERLY PORTFOLIO UPDATE
+
+Portfolio Company: Gamma Healthcare Services
+Fund: HealthVest Partners II
+Quarter: Q3 2025
+Investment Date: March 2023
+Current Hold Period: 2.5 years
+
+PERFORMANCE SUMMARY
+
+Financial Performance:
+- Q3 2025 Revenue: $42M (vs $38M budget, +10.5% beat)
+- Q3 2025 EBITDA: $11.2M (26.7% margin vs 25% target)
+- YTD Revenue: $118M (+18% YoY)
+- YTD EBITDA: $31M (+22% YoY)
+- LTM Revenue: $156M
+- LTM EBITDA: $41M
+
+Organic Growth: +12%
+Acquisition Growth: +6%
+Total Growth: +18% YoY
+
+Key Performance Indicators:
+- Patient visits: 128,000 (Q3)
+- Locations: 47 clinics (added 5 in Q3)
+- Same-clinic growth: +8%
+- Staff retention: 87%
+- Net Promoter Score: 76
+
+OPERATIONAL HIGHLIGHTS
+
+Value Creation Initiatives:
+✓ Completed EHR system migration (Epic implementation)
+✓ Launched telehealth platform (12% of visits now virtual)
+✓ Opened 3 de novo clinics, acquired 2 practices
+✓ Recruited Chief Medical Officer from Mayo Clinic
+✓ Negotiated improved payer contracts (+3% reimbursement rates)
+
+Digital Transformation:
+- Patient portal adoption: 68% (up from 42%)
+- Online appointment booking: 54% of new patients
+- AI-powered triage system: reduced wait times by 23%
+
+Geographic Expansion:
+- Entered 2 new states (Texas, Arizona)
+- Pipeline: 8 additional acquisition targets identified
+- Market density strategy: 3+ clinics per metro area
+
+INVESTMENT METRICS
+
+Current Valuation:
+- Entry valuation: $180M (7.5x EBITDA)
+- Current valuation: $369M (9.0x LTM EBITDA)
+- Unrealized gain: $189M
+- MOIC (unrealized): 2.05x
+- IRR (unrealized): 35%
+
+Capital Structure:
+- Equity: $90M
+- Senior debt: $70M (4.8x leverage at entry, now 3.2x)
+- Debt service coverage ratio: 2.8x
+- Cash balance: $12M
+
+STRATEGIC OUTLOOK
+
+Near-term priorities (6-12 months):
+1. Complete integration of Q3 acquisitions
+2. Launch chronic care management program
+3. Expand to 55 total locations
+4. Implement revenue cycle optimization
+5. Build out data analytics capabilities
+
+Exit Planning:
+- Target exit timing: Q2-Q3 2026 (3-3.5 year hold)
+- Exit multiple target: 10-11x EBITDA
+- Preferred exit route: Strategic sale to large healthcare system
+- Alternative: Secondary buyout to larger PE fund
+- Backup: IPO (requires $500M+ valuation)
+
+Potential Buyers Identified:
+- UnitedHealth Group (Optum division)
+- CVS Health (HealthHUB strategy)
+- Humana (CenterWell acquisition strategy)
+- Large regional health systems (5 identified)
+
+RISKS & MITIGATION
+
+Key Risks:
+1. Regulatory: CMS reimbursement cuts (10% probability)
+   Mitigation: Diversify payer mix, increase commercial insurance
+
+2. Competition: New clinic openings by competitors in core markets
+   Mitigation: First-mover advantage, superior patient experience
+
+3. Labor: Healthcare worker shortage driving wage inflation
+   Mitigation: Retention programs, technology to improve productivity
+
+4. Integration: Cultural challenges with acquired practices
+   Mitigation: Robust integration playbook, local autonomy model
+
+BOARD RECOMMENDATIONS
+
+1. APPROVED: $8M growth capex for 5 new clinics in 2026
+2. APPROVED: $3M investment in AI diagnostic tools
+3. UNDER REVIEW: Add-on acquisition of 6-clinic group ($22M)
+4. DEFERRED: International expansion (revisit in 2026)
+
+Next Board Meeting: January 15, 2026
