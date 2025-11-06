@@ -1,7 +1,8 @@
-import * as pdf from 'pdf-parse';
+import pdf from 'pdf-parse';
 import * as XLSX from 'xlsx';
 import * as mammoth from 'mammoth';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { ReductoClient } from './reducto-client';
 
 export interface ParsedDocument {
   id: string;
@@ -21,6 +22,7 @@ export interface ParsedDocument {
 
 export class DocumentParser {
   private textSplitter: RecursiveCharacterTextSplitter;
+  private reductoClient: ReductoClient | null = null;
 
   constructor() {
     // Configure text splitter for optimal chunk sizes
@@ -29,6 +31,27 @@ export class DocumentParser {
       chunkOverlap: 200,
       separators: ['\n\n', '\n', '. ', ' ', ''],
     });
+
+    // Initialize Reducto if enabled
+    if (process.env.USE_REDUCTO === 'true') {
+      if (!process.env.REDUCTO_API_KEY) {
+        console.warn('⚠️  USE_REDUCTO=true but REDUCTO_API_KEY not set');
+      } else {
+        try {
+          this.reductoClient = new ReductoClient({
+            apiKey: process.env.REDUCTO_API_KEY,
+            retryAttempts: 3,
+            timeout: 30000,
+          });
+          console.log('✅ Reducto client initialized for enhanced PDF parsing');
+        } catch (error) {
+          console.error('❌ Failed to initialize Reducto client:', error);
+          console.log('📄 Falling back to pdf-parse');
+        }
+      }
+    } else {
+      console.log('📄 Using standard pdf-parse (USE_REDUCTO=false)');
+    }
   }
 
   async parseDocument(file: Express.Multer.File): Promise<ParsedDocument> {
@@ -98,12 +121,34 @@ export class DocumentParser {
   }
 
   private async parsePDF(buffer: Buffer): Promise<string> {
+    // Try Reducto first if available
+    if (this.reductoClient) {
+      try {
+        console.log('🔵 Using Reducto for PDF parsing...');
+        const text = await this.reductoClient.parsePDF(buffer);
+
+        if (!text || text.trim().length === 0) {
+          throw new Error('Reducto returned empty content');
+        }
+
+        console.log(`✅ Reducto parsed ${text.length} characters`);
+        return text;
+      } catch (error) {
+        console.error('❌ Reducto parsing failed:', error);
+        console.log('📄 Falling back to pdf-parse...');
+        // Fall through to pdf-parse fallback
+      }
+    }
+
+    // Fallback to standard pdf-parse
     try {
+      console.log('📄 Using pdf-parse for PDF parsing...');
       const data = await pdf(buffer);
+      console.log(`✅ pdf-parse extracted ${data.text.length} characters`);
       return data.text;
     } catch (error) {
       console.error('PDF parsing error:', error);
-      throw new Error('Failed to parse PDF');
+      throw new Error('Failed to parse PDF with both Reducto and pdf-parse');
     }
   }
 
@@ -224,5 +269,16 @@ export class DocumentParser {
     // Parse all documents in parallel for maximum async efficiency
     const parsePromises = files.map(file => this.parseDocument(file));
     return Promise.all(parsePromises);
+  }
+
+  /**
+   * Get Reducto usage statistics (if enabled)
+   * Useful for monitoring API costs and performance
+   */
+  getReductoStats() {
+    if (this.reductoClient) {
+      return this.reductoClient.getStats();
+    }
+    return null;
   }
 }
