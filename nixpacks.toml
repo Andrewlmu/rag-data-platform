@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["python311", "gcc", "stdenv.cc", "zlib", "libffi"]
+
+[phases.install]
+cmds = [
+    "pip install --upgrade pip",
+    "pip install -r requirements.txt"
+]
+
+[start]
+cmd = "streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+
+[variables]
+PYTHON_VERSION = "3.11"
