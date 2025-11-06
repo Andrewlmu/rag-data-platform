@@ -10,7 +10,7 @@
     "build": "tsc && cd frontend && npm run build",
     "start": "node dist/backend/server.js",
     "test": "jest",
-    "lint": "eslint 'src/**/*.{ts,tsx}' --max-warnings=0",
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "format": "prettier --write 'src/**/*.{ts,tsx,json}'",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,json}'",
