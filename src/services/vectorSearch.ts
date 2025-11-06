@@ -74,8 +74,8 @@ export class VectorSearchService {
 
   async search(query: string, k: number = 5, filter?: Record<string, any>): Promise<SearchResult[]> {
     try {
-      // Perform similarity search
-      const results = await this.vectorStore.similaritySearchWithScore(query, k, filter);
+      // Perform similarity search (MemoryVectorStore doesn't use filter parameter)
+      const results = await this.vectorStore.similaritySearchWithScore(query, k);
 
       // Format results
       const searchResults: SearchResult[] = results.map(([doc, score]) => ({
