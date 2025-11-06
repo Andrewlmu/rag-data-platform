@@ -30,8 +30,8 @@ export class DataProcessor {
       structuredRecords: {
         companies: 0,
         transactions: 0,
-        customers: 0
-      }
+        customers: 0,
+      },
     };
   }
 
@@ -54,7 +54,7 @@ export class DataProcessor {
     const dirs = ['data/raw', 'data/processed', 'data/sample'];
 
     await Promise.all(
-      dirs.map(async (dir) => {
+      dirs.map(async dir => {
         try {
           await fs.mkdir(dir, { recursive: true });
         } catch (error) {
@@ -96,10 +96,10 @@ export class DataProcessor {
         'data/sample/sales_transactions.csv',
         'data/sample/customer_data.csv',
         'data/sample/risk_assessment.txt',
-        'data/sample/market_analysis.txt'
+        'data/sample/market_analysis.txt',
       ];
 
-      const processPromises = sampleFiles.map(async (filepath) => {
+      const processPromises = sampleFiles.map(async filepath => {
         try {
           const content = await fs.readFile(filepath, 'utf-8');
           const filename = path.basename(filepath);
@@ -112,9 +112,9 @@ export class DataProcessor {
               type: this.getFileType(filename),
               size: content.length,
               parsedAt: new Date().toISOString(),
-              source: 'sample_data'
+              source: 'sample_data',
             },
-            chunks: await this.createChunks(content, filename)
+            chunks: await this.createChunks(content, filename),
           };
 
           await this.processDocument(doc);
@@ -157,74 +157,124 @@ export class DataProcessor {
   }
 
   private generateCompaniesCSV(count: number): string {
-    const headers = ['company_id', 'name', 'sector', 'revenue_millions', 'ebitda_millions',
-                     'ebitda_margin', 'debt_millions', 'equity_millions', 'employees', 'year_founded'];
-    const sectors = ['Technology', 'Healthcare', 'Finance', 'Retail', 'Manufacturing',
-                     'Energy', 'Real Estate', 'Consumer Goods'];
+    const headers = [
+      'company_id',
+      'name',
+      'sector',
+      'revenue_millions',
+      'ebitda_millions',
+      'ebitda_margin',
+      'debt_millions',
+      'equity_millions',
+      'employees',
+      'year_founded',
+    ];
+    const sectors = [
+      'Technology',
+      'Healthcare',
+      'Finance',
+      'Retail',
+      'Manufacturing',
+      'Energy',
+      'Real Estate',
+      'Consumer Goods',
+    ];
 
     const rows = [headers.join(',')];
 
     for (let i = 1; i <= count; i++) {
       const revenue = Math.floor(Math.random() * 1000) + 50;
       const ebitda = Math.floor(revenue * (Math.random() * 0.3 + 0.1));
-      const margin = (ebitda / revenue * 100).toFixed(1);
+      const margin = ((ebitda / revenue) * 100).toFixed(1);
       const debt = Math.floor(Math.random() * 500);
       const equity = Math.floor(Math.random() * 800) + 100;
       const employees = Math.floor(Math.random() * 5000) + 50;
       const yearFounded = Math.floor(Math.random() * 50) + 1970;
 
-      rows.push([
-        `COMP${i.toString().padStart(4, '0')}`,
-        `"Company ${i}"`,
-        sectors[Math.floor(Math.random() * sectors.length)],
-        revenue,
-        ebitda,
-        margin,
-        debt,
-        equity,
-        employees,
-        yearFounded
-      ].join(','));
+      rows.push(
+        [
+          `COMP${i.toString().padStart(4, '0')}`,
+          `"Company ${i}"`,
+          sectors[Math.floor(Math.random() * sectors.length)],
+          revenue,
+          ebitda,
+          margin,
+          debt,
+          equity,
+          employees,
+          yearFounded,
+        ].join(',')
+      );
     }
 
     return rows.join('\n');
   }
 
   private generateTransactionsCSV(count: number): string {
-    const headers = ['transaction_id', 'date', 'company_id', 'customer_id', 'product',
-                     'quantity', 'unit_price', 'total_amount', 'payment_status'];
-    const products = ['Software License', 'Consulting', 'Hardware', 'Support', 'Training', 'Cloud Service'];
+    const headers = [
+      'transaction_id',
+      'date',
+      'company_id',
+      'customer_id',
+      'product',
+      'quantity',
+      'unit_price',
+      'total_amount',
+      'payment_status',
+    ];
+    const products = [
+      'Software License',
+      'Consulting',
+      'Hardware',
+      'Support',
+      'Training',
+      'Cloud Service',
+    ];
     const statuses = ['Paid', 'Pending', 'Overdue', 'Cancelled'];
 
     const rows = [headers.join(',')];
 
     for (let i = 1; i <= count; i++) {
       const date = new Date(2023, 0, 1 + Math.floor(Math.random() * 365));
-      const companyId = `COMP${Math.floor(Math.random() * 500 + 1).toString().padStart(4, '0')}`;
-      const customerId = `CUST${Math.floor(Math.random() * 1000 + 1).toString().padStart(4, '0')}`;
+      const companyId = `COMP${Math.floor(Math.random() * 500 + 1)
+        .toString()
+        .padStart(4, '0')}`;
+      const customerId = `CUST${Math.floor(Math.random() * 1000 + 1)
+        .toString()
+        .padStart(4, '0')}`;
       const quantity = Math.floor(Math.random() * 100) + 1;
       const unitPrice = Math.floor(Math.random() * 10000) + 100;
       const total = quantity * unitPrice;
 
-      rows.push([
-        `TRX${i.toString().padStart(6, '0')}`,
-        date.toISOString().split('T')[0],
-        companyId,
-        customerId,
-        products[Math.floor(Math.random() * products.length)],
-        quantity,
-        unitPrice,
-        total,
-        statuses[Math.floor(Math.random() * statuses.length)]
-      ].join(','));
+      rows.push(
+        [
+          `TRX${i.toString().padStart(6, '0')}`,
+          date.toISOString().split('T')[0],
+          companyId,
+          customerId,
+          products[Math.floor(Math.random() * products.length)],
+          quantity,
+          unitPrice,
+          total,
+          statuses[Math.floor(Math.random() * statuses.length)],
+        ].join(',')
+      );
     }
 
     return rows.join('\n');
   }
 
   private generateCustomerCSV(count: number): string {
-    const headers = ['customer_id', 'name', 'industry', 'annual_revenue', 'employee_count',
-                     'country', 'credit_rating', 'account_status'];
+    const headers = [
+      'customer_id',
+      'name',
+      'industry',
+      'annual_revenue',
+      'employee_count',
+      'country',
+      'credit_rating',
+      'account_status',
+    ];
     const industries = ['Banking', 'Insurance', 'Retail', 'Technology', 'Healthcare', 'Government'];
     const countries = ['USA', 'UK', 'Germany', 'France', 'Japan', 'Canada', 'Australia'];
     const ratings = ['AAA', 'AA', 'A', 'BBB', 'BB', 'B'];
@@ -233,16 +283,18 @@ export class DataProcessor {
     const rows = [headers.join(',')];
 
     for (let i = 1; i <= count; i++) {
-      rows.push([
-        `CUST${i.toString().padStart(4, '0')}`,
-        `"Customer ${i}"`,
-        industries[Math.floor(Math.random() * industries.length)],
-        Math.floor(Math.random() * 10000) + 100,
-        Math.floor(Math.random() * 50000) + 100,
-        countries[Math.floor(Math.random() * countries.length)],
-        ratings[Math.floor(Math.random() * ratings.length)],
-        statuses[Math.floor(Math.random() * statuses.length)]
-      ].join(','));
+      rows.push(
+        [
+          `CUST${i.toString().padStart(4, '0')}`,
+          `"Customer ${i}"`,
+          industries[Math.floor(Math.random() * industries.length)],
+          Math.floor(Math.random() * 10000) + 100,
+          Math.floor(Math.random() * 50000) + 100,
+          countries[Math.floor(Math.random() * countries.length)],
+          ratings[Math.floor(Math.random() * ratings.length)],
+          statuses[Math.floor(Math.random() * statuses.length)],
+        ].join(',')
+      );
     }
 
     return rows.join('\n');
@@ -453,15 +505,20 @@ fundamentals and operational improvements. Success will require disciplined
 investing, active portfolio management, and strategic positioning for the next cycle.`;
   }
 
-  private async createChunks(content: string, filename: string): Promise<Array<{
-    text: string;
-    metadata: Record<string, any>;
-  }>> {
+  private async createChunks(
+    content: string,
+    filename: string
+  ): Promise<
+    Array<{
+      text: string;
+      metadata: Record<string, any>;
+    }>
+  > {
     const chunkSize = 1000;
     const overlap = 200;
     const chunks: Array<{ text: string; metadata: Record<string, any> }> = [];
 
-    for (let i = 0; i < content.length; i += (chunkSize - overlap)) {
+    for (let i = 0; i < content.length; i += chunkSize - overlap) {
       const chunk = content.slice(i, i + chunkSize);
       if (chunk.trim().length > 0) {
         chunks.push({
@@ -469,8 +526,8 @@ investing, active portfolio management, and strategic positioning for the next c
           metadata: {
             source: filename,
             chunkIndex: chunks.length,
-            startPosition: i
-          }
+            startPosition: i,
+          },
         });
       }
     }
@@ -485,7 +542,7 @@ investing, active portfolio management, and strategic positioning for the next c
       txt: 'text',
       pdf: 'pdf',
       xlsx: 'excel',
-      docx: 'word'
+      docx: 'word',
     };
     return typeMap[ext || ''] || 'unknown';
   }

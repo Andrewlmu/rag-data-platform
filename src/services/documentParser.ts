@@ -27,7 +27,7 @@ export class DocumentParser {
     this.textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200,
-      separators: ['\n\n', '\n', '. ', ' ', '']
+      separators: ['\n\n', '\n', '. ', ' ', ''],
     });
   }
 
@@ -41,7 +41,7 @@ export class DocumentParser {
         filename: file.originalname,
         type: fileType,
         size: file.size,
-        parsedAt: new Date().toISOString()
+        parsedAt: new Date().toISOString(),
       };
 
       // Parse based on file type
@@ -87,9 +87,9 @@ export class DocumentParser {
         metadata: {
           ...metadata,
           processingTime,
-          chunksCount: chunks.length
+          chunksCount: chunks.length,
         },
-        chunks
+        chunks,
       };
     } catch (error) {
       console.error(`Error parsing ${file.originalname}:`, error);
@@ -115,7 +115,7 @@ export class DocumentParser {
       const workbook = XLSX.read(buffer, { type: 'buffer' });
       const metadata: Record<string, any> = {
         sheetNames: workbook.SheetNames,
-        sheetsCount: workbook.SheetNames.length
+        sheetsCount: workbook.SheetNames.length,
       };
 
       let content = '';
@@ -176,26 +176,25 @@ export class DocumentParser {
     metadata: Record<string, any>
   ): Promise<Array<{ text: string; metadata: Record<string, any> }>> {
     try {
-      const documents = await this.textSplitter.createDocuments(
-        [content],
-        [metadata]
-      );
+      const documents = await this.textSplitter.createDocuments([content], [metadata]);
 
       return documents.map((doc, index) => ({
         text: doc.pageContent,
         metadata: {
           ...doc.metadata,
           chunkIndex: index,
-          chunkTotal: documents.length
-        }
+          chunkTotal: documents.length,
+        },
       }));
     } catch (error) {
       console.error('Chunking error:', error);
       // Return single chunk if splitting fails
-      return [{
-        text: content,
-        metadata: { ...metadata, chunkIndex: 0, chunkTotal: 1 }
-      }];
+      return [
+        {
+          text: content,
+          metadata: { ...metadata, chunkIndex: 0, chunkTotal: 1 },
+        },
+      ];
     }
   }
 
@@ -208,7 +207,7 @@ export class DocumentParser {
       docx: 'word',
       doc: 'word',
       csv: 'csv',
-      txt: 'text'
+      txt: 'text',
     };
 
     return typeMap[ext || ''] || 'unknown';
@@ -221,9 +220,7 @@ export class DocumentParser {
     return `${cleanName}_${timestamp}_${random}`;
   }
 
-  async parseMultipleDocuments(
-    files: Express.Multer.File[]
-  ): Promise<ParsedDocument[]> {
+  async parseMultipleDocuments(files: Express.Multer.File[]): Promise<ParsedDocument[]> {
     // Parse all documents in parallel for maximum async efficiency
     const parsePromises = files.map(file => this.parseDocument(file));
     return Promise.all(parsePromises);

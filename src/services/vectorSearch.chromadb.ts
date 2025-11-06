@@ -16,11 +16,11 @@ export class VectorSearchService {
 
   constructor() {
     this.client = new ChromaClient({
-      path: 'http://localhost:8001'
+      path: 'http://localhost:8001',
     });
     this.embeddings = new OpenAIEmbeddings({
       modelName: 'text-embedding-3-small',
-      openAIApiKey: process.env.OPENAI_API_KEY
+      openAIApiKey: process.env.OPENAI_API_KEY,
     });
   }
 
@@ -35,7 +35,7 @@ export class VectorSearchService {
       // Create new collection
       this.collection = await this.client.createCollection({
         name: this.collectionName,
-        metadata: { description: 'PE analysis data with GPT-5' }
+        metadata: { description: 'PE analysis data with GPT-5' },
       });
 
       console.log('✅ Vector store initialized with collection:', this.collectionName);
@@ -60,9 +60,7 @@ export class VectorSearchService {
       const chunks = doc.chunks || [{ text: doc.content, metadata: doc.metadata }];
 
       // Generate embeddings for all chunks in parallel
-      const embedPromises = chunks.map(chunk =>
-        this.embeddings.embedQuery(chunk.text)
-      );
+      const embedPromises = chunks.map(chunk => this.embeddings.embedQuery(chunk.text));
       const embeddings = await Promise.all(embedPromises);
 
       // Prepare data for ChromaDB
@@ -71,7 +69,7 @@ export class VectorSearchService {
       const metadatas = chunks.map(chunk => ({
         ...chunk.metadata,
         documentId: doc.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }));
 
       // Add to collection
@@ -79,7 +77,7 @@ export class VectorSearchService {
         ids,
         embeddings,
         documents,
-        metadatas
+        metadatas,
       });
 
       console.log(`📄 Added document ${doc.id} with ${chunks.length} chunks`);
@@ -89,7 +87,11 @@ export class VectorSearchService {
     }
   }
 
-  async search(query: string, k: number = 5, filter?: Record<string, any>): Promise<SearchResult[]> {
+  async search(
+    query: string,
+    k: number = 5,
+    filter?: Record<string, any>
+  ): Promise<SearchResult[]> {
     if (!this.collection) {
       throw new Error('Vector store not initialized');
     }
@@ -102,7 +104,7 @@ export class VectorSearchService {
       const results = await this.collection.query({
         queryEmbeddings: [queryEmbedding],
         nResults: k,
-        where: filter
+        where: filter,
       });
 
       // Format results
@@ -113,7 +115,7 @@ export class VectorSearchService {
           searchResults.push({
             content: results.documents[0][i] || '',
             metadata: results.metadatas?.[0]?.[i] || {},
-            score: results.distances?.[0]?.[i] || 0
+            score: results.distances?.[0]?.[i] || 0,
           });
         }
       }
@@ -132,7 +134,7 @@ export class VectorSearchService {
 
     try {
       await this.collection.delete({
-        where: { documentId }
+        where: { documentId },
       });
       console.log(`🗑️ Deleted document: ${documentId}`);
     } catch (error) {
@@ -154,13 +156,11 @@ export class VectorSearchService {
 
       // Get unique document IDs
       const results = await this.collection.get();
-      const uniqueDocs = new Set(
-        results.metadatas?.map(m => m?.documentId).filter(Boolean)
-      );
+      const uniqueDocs = new Set(results.metadatas?.map(m => m?.documentId).filter(Boolean));
 
       return {
         totalDocuments: uniqueDocs.size,
-        totalChunks: count
+        totalChunks: count,
       };
     } catch (error) {
       console.error('Failed to get stats:', error);

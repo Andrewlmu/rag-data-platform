@@ -44,16 +44,17 @@ export class VectorSearchService {
       const chunks = doc.chunks || [{ text: doc.content, metadata: doc.metadata }];
 
       // Create Document objects for each chunk
-      const documents = chunks.map((chunk, index) =>
-        new Document({
-          pageContent: chunk.text,
-          metadata: {
-            ...chunk.metadata,
-            documentId: doc.id,
-            chunkIndex: index,
-            timestamp: new Date().toISOString()
-          }
-        })
+      const documents = chunks.map(
+        (chunk, index) =>
+          new Document({
+            pageContent: chunk.text,
+            metadata: {
+              ...chunk.metadata,
+              documentId: doc.id,
+              chunkIndex: index,
+              timestamp: new Date().toISOString(),
+            },
+          })
       );
 
       // Add to vector store
@@ -72,7 +73,11 @@ export class VectorSearchService {
     }
   }
 
-  async search(query: string, k: number = 5, filter?: Record<string, any>): Promise<SearchResult[]> {
+  async search(
+    query: string,
+    k: number = 5,
+    filter?: Record<string, any>
+  ): Promise<SearchResult[]> {
     try {
       // Perform similarity search (MemoryVectorStore doesn't use filter parameter)
       const results = await this.vectorStore.similaritySearchWithScore(query, k);
@@ -81,7 +86,7 @@ export class VectorSearchService {
       const searchResults: SearchResult[] = results.map(([doc, score]) => ({
         content: doc.pageContent,
         metadata: doc.metadata || {},
-        score: 1 - score // Convert distance to similarity score
+        score: 1 - score, // Convert distance to similarity score
       }));
 
       return searchResults;
@@ -117,7 +122,7 @@ export class VectorSearchService {
 
     return {
       totalDocuments: uniqueDocs.size,
-      totalChunks: this.documents.size
+      totalChunks: this.documents.size,
     };
   }
 

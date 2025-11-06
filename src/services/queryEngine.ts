@@ -25,14 +25,11 @@ export class QueryEngine {
       temperature: 0,
       maxTokens: 4096,
       openAIApiKey: process.env.OPENAI_API_KEY,
-      streaming: true
+      streaming: true,
     });
   }
 
-  async executeQuery(
-    query: string,
-    filters?: Record<string, any>
-  ): Promise<QueryResult> {
+  async executeQuery(query: string, filters?: Record<string, any>): Promise<QueryResult> {
     const startTime = Date.now();
 
     try {
@@ -62,10 +59,7 @@ ${context}`;
 Please provide a comprehensive answer based on the available data.`;
 
       // Get response from GPT-5
-      const messages = [
-        new SystemMessage(systemPrompt),
-        new HumanMessage(userPrompt)
-      ];
+      const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
 
       const response = await this.llm.invoke(messages);
 
@@ -78,10 +72,10 @@ Please provide a comprehensive answer based on the available data.`;
         answer: response.content.toString(),
         sources: searchResults.slice(0, 5).map(r => ({
           content: r.content,
-          metadata: r.metadata
+          metadata: r.metadata,
         })),
         confidence,
-        processingTime
+        processingTime,
       };
     } catch (error) {
       console.error('Query execution error:', error);
@@ -105,10 +99,7 @@ Please provide a comprehensive answer based on the available data.`;
 
 Context: ${context}`;
 
-      const messages = [
-        new SystemMessage(systemPrompt),
-        new HumanMessage(query)
-      ];
+      const messages = [new SystemMessage(systemPrompt), new HumanMessage(query)];
 
       // Stream the response
       let fullResponse = '';
@@ -129,10 +120,10 @@ Context: ${context}`;
         answer: fullResponse,
         sources: searchResults.slice(0, 5).map(r => ({
           content: r.content,
-          metadata: r.metadata
+          metadata: r.metadata,
         })),
         confidence,
-        processingTime
+        processingTime,
       };
     } catch (error) {
       console.error('Streaming query error:', error);
@@ -167,7 +158,7 @@ Provide a structured analysis focusing on completeness, accuracy, and consistenc
 
       const messages = [
         new SystemMessage('You are a data quality expert analyzing PE data using GPT-5.'),
-        new HumanMessage(prompt)
+        new HumanMessage(prompt),
       ];
 
       const response = await this.llm.invoke(messages);
@@ -180,7 +171,7 @@ Provide a structured analysis focusing on completeness, accuracy, and consistenc
       return {
         insights: analysis,
         issues,
-        recommendations
+        recommendations,
       };
     } catch (error) {
       console.error('Data quality analysis error:', error);
@@ -211,7 +202,8 @@ ${result.content}
 
     // Calculate confidence based on search result scores
     // Lower scores mean better matches in ChromaDB
-    const avgScore = searchResults.reduce((acc, r) => acc + (r.score || 1), 0) / searchResults.length;
+    const avgScore =
+      searchResults.reduce((acc, r) => acc + (r.score || 1), 0) / searchResults.length;
 
     // Convert to confidence percentage (inverse of distance)
     const confidence = Math.max(0, Math.min(100, (1 - avgScore) * 100));
@@ -224,7 +216,11 @@ ${result.content}
     const lines = analysis.split('\n');
 
     for (const line of lines) {
-      if (line.includes('missing') || line.includes('incomplete') || line.includes('inconsistent')) {
+      if (
+        line.includes('missing') ||
+        line.includes('incomplete') ||
+        line.includes('inconsistent')
+      ) {
         issues.push(line.trim());
       }
     }

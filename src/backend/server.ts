@@ -21,8 +21,8 @@ const httpServer = createServer(app);
 const io = new SocketServer(httpServer, {
   cors: {
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    methods: ['GET', 'POST']
-  }
+    methods: ['GET', 'POST'],
+  },
 });
 
 // Middleware
@@ -43,7 +43,7 @@ const upload = multer({
     } else {
       cb(new Error('Invalid file type'));
     }
-  }
+  },
 });
 
 // Initialize services
@@ -76,7 +76,7 @@ app.get('/health', (req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     model: 'gpt-5',
-    async: true
+    async: true,
   });
 });
 
@@ -95,7 +95,7 @@ app.post('/api/upload', upload.array('files', 10), async (req: Request, res: Res
         io.emit('upload:progress', {
           current: index + 1,
           total: req.files.length,
-          fileName: file.originalname
+          fileName: file.originalname,
         });
 
         // Parse document asynchronously
@@ -111,7 +111,7 @@ app.post('/api/upload', upload.array('files', 10), async (req: Request, res: Res
           filename: file.originalname,
           size: file.size,
           processed: true,
-          chunks: parsed.chunks?.length || 0
+          chunks: parsed.chunks?.length || 0,
         };
       })
     );
@@ -179,7 +179,7 @@ app.get('/api/stats', async (req: Request, res: Response) => {
 });
 
 // WebSocket connection handling
-io.on('connection', (socket) => {
+io.on('connection', socket => {
   console.log('Client connected:', socket.id);
 
   socket.on('disconnect', () => {
@@ -192,7 +192,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err);
   res.status(500).json({
     error: 'Internal server error',
-    message: err.message
+    message: err.message,
   });
 });
 
