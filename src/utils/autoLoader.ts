@@ -92,7 +92,6 @@ export class AutoLoader {
           await this.dataProcessor.processDocument(doc);
           loaded++;
           console.log(`  ✅ Loaded: ${filename} (${type})`);
-
         } catch (error: any) {
           console.error(`  ❌ Failed to load ${filename}:`, error.message);
           skipped++;
@@ -100,7 +99,6 @@ export class AutoLoader {
       }
 
       console.log(`\n📊 Auto-load complete: ${loaded} loaded, ${skipped} skipped\n`);
-
     } catch (error: any) {
       console.error('❌ Auto-load failed:', error.message);
     }

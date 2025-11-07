@@ -292,8 +292,10 @@ export class DataProcessor {
 
     // Update stats - CSV files create 3 metadata documents (not counted as 'csv' type)
     this.stats.totalDocuments += 3; // desc + stats + insights
-    this.stats.documentTypes['csv_description'] = (this.stats.documentTypes['csv_description'] || 0) + 1;
-    this.stats.documentTypes['csv_statistics'] = (this.stats.documentTypes['csv_statistics'] || 0) + 1;
+    this.stats.documentTypes['csv_description'] =
+      (this.stats.documentTypes['csv_description'] || 0) + 1;
+    this.stats.documentTypes['csv_statistics'] =
+      (this.stats.documentTypes['csv_statistics'] || 0) + 1;
     this.stats.documentTypes['csv_insights'] = (this.stats.documentTypes['csv_insights'] || 0) + 1;
     this.stats.lastUpdated = new Date().toISOString();
 
