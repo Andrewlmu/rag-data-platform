@@ -50,7 +50,7 @@ export class QueryEngine {
     // Initialize GPT-5 with async streaming support (using gpt-4-turbo for now)
     this.llm = new ChatOpenAI({
       modelName: 'gpt-4-turbo',
-      temperature: 0,
+      temperature: 1, // GPT-5 only supports temperature=1 (default)
       maxTokens: 4096,
       openAIApiKey: process.env.OPENAI_API_KEY,
       streaming: true,

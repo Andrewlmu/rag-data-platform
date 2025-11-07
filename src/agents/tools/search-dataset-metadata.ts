@@ -53,8 +53,12 @@ Example: "quarterly financials" → finds tables with quarterly financial data`,
         // Search only metadata documents (type: dataset_metadata)
         const results = await vectorSearch.search(query, maxResults);
 
-        // Filter to only metadata documents
-        const metadataResults = results.filter(r => r.metadata?.type === 'dataset_metadata');
+        // Filter to only metadata documents (description, statistics, or insights)
+        const metadataResults = results.filter(r =>
+          r.metadata?.type === 'csv_description' ||
+          r.metadata?.type === 'csv_statistics' ||
+          r.metadata?.type === 'csv_insights'
+        );
 
         if (metadataResults.length === 0) {
           return {

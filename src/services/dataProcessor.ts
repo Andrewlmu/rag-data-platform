@@ -78,7 +78,7 @@ export class DataProcessor {
     // Initialize metadata generator with LLM
     const llm = new ChatOpenAI({
       modelName: process.env.LLM_MODEL || 'gpt-4',
-      temperature: 0,
+      temperature: 1, // GPT-5 only supports temperature=1 (default)
     });
     this.metadataGenerator = new MetadataGenerator(llm);
 
@@ -227,14 +227,14 @@ export class DataProcessor {
       content: enhancedMetadata.basicDescription,
       metadata: {
         ...baseMetadata,
-        type: 'dataset_metadata',
+        type: 'csv_description',
         documentType: 'description',
       },
       chunks: [
         {
           text: enhancedMetadata.basicDescription,
           metadata: {
-            type: 'dataset_metadata',
+            type: 'csv_description',
             tableId: tableName,
             filename: filename,
             schema: parsedData.headers.map((col, i) => ({
@@ -252,14 +252,14 @@ export class DataProcessor {
       content: enhancedMetadata.statisticalSummary,
       metadata: {
         ...baseMetadata,
-        type: 'dataset_statistics',
+        type: 'csv_statistics',
         documentType: 'statistics',
       },
       chunks: [
         {
           text: enhancedMetadata.statisticalSummary,
           metadata: {
-            type: 'dataset_statistics',
+            type: 'csv_statistics',
             tableId: tableName,
             filename: filename,
           },
@@ -273,14 +273,14 @@ export class DataProcessor {
       content: enhancedMetadata.insightsDocument,
       metadata: {
         ...baseMetadata,
-        type: 'dataset_insights',
+        type: 'csv_insights',
         documentType: 'insights',
       },
       chunks: [
         {
           text: enhancedMetadata.insightsDocument,
           metadata: {
-            type: 'dataset_insights',
+            type: 'csv_insights',
             tableId: tableName,
             filename: filename,
             gaps: enhancedMetadata.profile.gaps,
@@ -290,9 +290,11 @@ export class DataProcessor {
       ],
     });
 
-    // Update stats
-    this.stats.totalDocuments++;
-    this.stats.documentTypes['csv'] = (this.stats.documentTypes['csv'] || 0) + 1;
+    // Update stats - CSV files create 3 metadata documents (not counted as 'csv' type)
+    this.stats.totalDocuments += 3; // desc + stats + insights
+    this.stats.documentTypes['csv_description'] = (this.stats.documentTypes['csv_description'] || 0) + 1;
+    this.stats.documentTypes['csv_statistics'] = (this.stats.documentTypes['csv_statistics'] || 0) + 1;
+    this.stats.documentTypes['csv_insights'] = (this.stats.documentTypes['csv_insights'] || 0) + 1;
     this.stats.lastUpdated = new Date().toISOString();
 
     console.log(`✅ Processed structured data: ${tableName}`);

@@ -16,6 +16,7 @@ import { QueryEngine } from '../services/queryEngine';
 import { DocumentParser } from '../services/documentParser';
 import { DocumentStore } from '../services/documentStore';
 import { ParentChildRetriever } from '../services/parentChildRetriever';
+import { AutoLoader } from '../utils/autoLoader';
 
 // Initialize Express app
 const app = express();
@@ -92,6 +93,10 @@ async function initializeServices() {
   console.log('✅ Data processor initialized');
 
   console.log('🎯 All services ready with async capabilities');
+
+  // Auto-load demo data if enabled
+  const autoLoader = new AutoLoader(dataProcessor, documentParser);
+  await autoLoader.autoLoadDemoData();
 }
 
 // Health check endpoint

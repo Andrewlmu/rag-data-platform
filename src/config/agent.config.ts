@@ -28,7 +28,7 @@ export const agentConfig: AgentConfig = {
   // LLM configuration
   llm: {
     model: process.env.LLM_MODEL || 'gpt-5', // fallback to gpt-5
-    temperature: 0, // Deterministic reasoning
+    temperature: 1, // GPT-5 only supports temperature=1 (default)
     maxTokens: parseInt(process.env.MAX_TOKENS || '2000'),
   },
 

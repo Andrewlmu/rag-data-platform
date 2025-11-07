@@ -1,0 +1,6 @@
+test-outputs/*
+test-results.json
+*.log
+data/*
+.next/*
+node_modules/*
