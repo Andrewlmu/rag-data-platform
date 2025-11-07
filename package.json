@@ -28,7 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "@langchain/community": "^0.0.10",
-    "@langchain/openai": "^0.0.12",
+    "@langchain/openai": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.21.0",
     "@types/papaparse": "^5.5.0",
     "bull": "^4.11.5",
