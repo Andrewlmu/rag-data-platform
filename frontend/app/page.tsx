@@ -70,12 +70,12 @@ export default function Home() {
       {stats && (
         <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="card">
-            <div className="text-sm text-gray-600">Total Documents</div>
-            <div className="text-2xl font-bold">{stats.totalDocuments || 0}</div>
+            <div className="text-sm text-gray-600">Total Files</div>
+            <div className="text-2xl font-bold">{stats.totalFiles || 0}</div>
           </div>
           <div className="card">
-            <div className="text-sm text-gray-600">Total Chunks</div>
-            <div className="text-2xl font-bold">{stats.totalChunks || 0}</div>
+            <div className="text-sm text-gray-600">Vector Embeddings</div>
+            <div className="text-2xl font-bold">{stats.vectorEmbeddings || 0}</div>
           </div>
           <div className="card">
             <div className="text-sm text-gray-600">Companies</div>
@@ -141,7 +141,7 @@ export default function Home() {
               </h2>
               <QueryInterface />
             </div>
-            {!stats?.totalDocuments && (
+            {!stats?.totalFiles && (
               <div className="card bg-blue-50 border-blue-200">
                 <p className="text-blue-900 mb-4">
                   No data loaded yet. Would you like to load sample data?

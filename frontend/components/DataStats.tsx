@@ -27,15 +27,15 @@ export default function DataStats({ stats }: DataStatsProps) {
   const overviewData = [
     {
       icon: FileText,
-      label: 'Total Documents',
-      value: stats.totalDocuments || 0,
+      label: 'Total Files',
+      value: stats.totalFiles || 0,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
       icon: Database,
-      label: 'Vector Chunks',
-      value: stats.totalChunks || 0,
+      label: 'Vector Embeddings',
+      value: stats.vectorEmbeddings || 0,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
@@ -132,14 +132,14 @@ export default function DataStats({ stats }: DataStatsProps) {
                 className="bg-green-600 h-2 rounded-full"
                 style={{
                   width: `${Math.min(
-                    ((stats.totalChunks || 0) / Math.max(stats.totalDocuments || 1, 1)) * 10,
+                    ((stats.vectorEmbeddings || 0) / Math.max(stats.totalFiles || 1, 1)) * 10,
                     100
                   )}%`,
                 }}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              {((stats.totalChunks || 0) / Math.max(stats.totalDocuments || 1, 1)).toFixed(1)} chunks per doc
+              {((stats.vectorEmbeddings || 0) / Math.max(stats.totalFiles || 1, 1)).toFixed(1)} embeddings per file
             </p>
           </div>
 
@@ -165,13 +165,13 @@ export default function DataStats({ stats }: DataStatsProps) {
                 className="bg-purple-600 h-2 rounded-full"
                 style={{
                   width: `${
-                    stats.totalDocuments > 0 ? 85 : 0
+                    stats.totalFiles > 0 ? 85 : 0
                   }%`,
                 }}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              {stats.totalDocuments > 0 ? 'Good coverage' : 'No data'}
+              {stats.totalFiles > 0 ? 'Good coverage' : 'No data'}
             </p>
           </div>
         </div>

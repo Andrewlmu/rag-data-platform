@@ -215,19 +215,20 @@ export class VectorSearchService {
   }
 
   async getStats(): Promise<{
-    totalDocuments: number;
-    totalChunks: number;
+    totalFiles: number;
+    vectorEmbeddings: number;
   }> {
-    const uniqueDocs = new Set<string>();
+    // Count unique filenames (source files), not documentIds
+    const uniqueFiles = new Set<string>();
     this.documents.forEach((doc) => {
-      if (doc.metadata?.documentId) {
-        uniqueDocs.add(doc.metadata.documentId);
+      if (doc.metadata?.filename) {
+        uniqueFiles.add(doc.metadata.filename);
       }
     });
 
     return {
-      totalDocuments: uniqueDocs.size,
-      totalChunks: this.documents.size,
+      totalFiles: uniqueFiles.size,
+      vectorEmbeddings: this.documents.size,
     };
   }
 
