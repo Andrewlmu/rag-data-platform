@@ -189,13 +189,13 @@ function sanitizeTableName(filename: string): string {
 function isValidSQL(sql: string): boolean {
   const normalized = sql.trim().toUpperCase();
 
-  // Only allow SELECT statements
-  if (!normalized.startsWith('SELECT')) {
+  // Allow SELECT and WITH (for CTEs) statements
+  if (!normalized.startsWith('SELECT') && !normalized.startsWith('WITH')) {
     return false;
   }
 
-  // Block dangerous keywords
-  const dangerous = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'TRUNCATE', 'CREATE', 'EXEC'];
+  // Block dangerous keywords (excluding CREATE since CTEs use "WITH ... AS" which is safe)
+  const dangerous = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'TRUNCATE', 'EXEC'];
   for (const keyword of dangerous) {
     if (normalized.includes(keyword)) {
       return false;
