@@ -92,8 +92,14 @@ export class AutoLoader {
             await this.fileTracker.markProcessing(filePath);
           }
 
-          // Read file content
-          const content = await fs.readFile(filePath, 'utf-8');
+          // Read file content and strip BOM if present
+          let content = await fs.readFile(filePath, 'utf-8');
+
+          // Remove UTF-8 BOM if present
+          if (content.charCodeAt(0) === 0xfeff) {
+            content = content.slice(1);
+            console.log(`  🔧 Removed UTF-8 BOM from ${filename}`);
+          }
 
           // Determine file type
           const ext = path.extname(filename).toLowerCase();
@@ -102,6 +108,8 @@ export class AutoLoader {
           else if (ext === '.pdf') type = 'pdf';
           else if (ext === '.txt') type = 'txt';
           else if (ext === '.md') type = 'markdown';
+
+          console.log(`  📝 Processing ${filename} (${type}, ${content.length} bytes)...`);
 
           // Process through document processor
           const doc = {
@@ -117,7 +125,9 @@ export class AutoLoader {
             chunks: [], // Will be populated during processing
           };
 
+          console.log(`  ⚙️  Calling processDocument for ${filename}...`);
           await this.dataProcessor.processDocument(doc);
+          console.log(`  ✅ processDocument completed for ${filename}`);
 
           // Mark as completed
           if (this.fileTracker) {
@@ -136,8 +146,18 @@ export class AutoLoader {
       }
 
       console.log(
-        `\n📊 Auto-load complete: ${processedCount} processed, ${skippedCount} skipped\n`
+        `\n📊 Auto-load complete: ${processedCount} processed, ${skippedCount} skipped`
       );
+
+      // Save vector cache after batch loading
+      if (processedCount > 0) {
+        console.log('💾 Saving vector cache...');
+        const vectorSearch = this.dataProcessor.getVectorSearch();
+        if (vectorSearch && typeof vectorSearch.saveCacheNow === 'function') {
+          await vectorSearch.saveCacheNow();
+          console.log('✅ Vector cache saved\n');
+        }
+      }
     } catch (error: any) {
       console.error('❌ Auto-load failed:', error.message);
     }

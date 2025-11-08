@@ -21,11 +21,11 @@ export default function QueryInterface() {
   const [error, setError] = useState<string | null>(null);
 
   const sampleQueries = [
-    "What are the main risk factors?",
-    "Which companies have EBITDA margins above 20%?",
-    "Find customer concentration issues",
-    "What data quality issues exist?",
-    "Show revenue growth trends by sector"
+    "What is the life expectancy in Afghanistan?",
+    "Which countries have the highest infant mortality rates?",
+    "Show maternal mortality trends across regions",
+    "Compare suicide rates between countries",
+    "What are the main causes of death globally?"
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +37,10 @@ export default function QueryInterface() {
     setResult(null);
 
     try {
-      const response = await axios.post('/api/query', { query });
+      // Set 2-minute timeout for long-running agent queries
+      const response = await axios.post('/api/query', { query }, {
+        timeout: 120000, // 2 minutes for GPT-5 + tool calling
+      });
       setResult(response.data);
     } catch (err) {
       setError('Failed to process query. Please try again.');
@@ -59,7 +62,7 @@ export default function QueryInterface() {
           <textarea
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask anything about your PE data..."
+            placeholder="Ask anything about global health data..."
             className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
             rows={3}
             disabled={isLoading}

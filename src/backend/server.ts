@@ -277,9 +277,14 @@ async function startServer() {
     await initializeServices();
 
     httpServer.listen(PORT, () => {
+      // Set server timeout to 2 minutes for long-running agent queries
+      httpServer.timeout = 120000; // 2 minutes (GPT-5 + tool calling can be slow)
+      httpServer.keepAliveTimeout = 125000; // Slightly longer than timeout
+
       console.log(`✨ TypeScript PE Analysis Backend running on port ${PORT}`);
       console.log(`🤖 Using GPT-5 model with full async capabilities`);
       console.log(`🔄 WebSocket support enabled for real-time updates`);
+      console.log(`⏱️  Request timeout: 120s (for agentic queries)`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

@@ -134,10 +134,11 @@ export class ToolRegistry {
 
   /**
    * Get tool definitions in OpenAI Responses API format
-   * Responses API uses flat structure with name/description/parameters at top level
+   * Responses API requires type field plus flat name/description/parameters
    */
   getOpenAITools(): any[] {
     return Array.from(this.tools.values()).map(tool => ({
+      type: 'function' as const,
       name: tool.name,
       description: tool.description,
       parameters: tool.parameters,

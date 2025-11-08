@@ -314,50 +314,53 @@ export class DataProcessor {
   }
 
   async loadSampleData(): Promise<void> {
-    console.log('📊 Loading sample PE data...');
+    console.log('📊 Loading demo PE data...');
 
     try {
-      // Generate sample data files
-      await this.generateSampleData();
-
-      // Process each sample file
-      const sampleFiles = [
-        'data/sample/companies_financials.csv',
-        'data/sample/sales_transactions.csv',
-        'data/sample/customer_data.csv',
-        'data/sample/risk_assessment.txt',
-        'data/sample/market_analysis.txt',
+      // Load actual demo files from data/demo/ directory
+      // These are the real test files with comprehensive PE data
+      const demoFiles = [
+        // CSV files with structured data
+        'data/demo/comprehensive-test.csv',
+        'data/demo/portfolio-metrics.csv',
+        // Text files with unstructured data
+        'data/demo/acme-deal-memo.txt',
+        'data/demo/beta-tech-due-diligence.txt',
+        'data/demo/delta-healthcare-lbo.txt',
+        'data/demo/epsilon-software-growth.txt',
+        'data/demo/gamma-portfolio-update.txt',
       ];
 
-      const processPromises = sampleFiles.map(async filepath => {
+      const processPromises = demoFiles.map(async filepath => {
         try {
           const content = await fs.readFile(filepath, 'utf-8');
           const filename = path.basename(filepath);
 
           const doc: ParsedDocument = {
-            id: `sample_${filename.replace(/\./g, '_')}_${Date.now()}`,
+            id: `demo_${filename.replace(/\./g, '_')}_${Date.now()}`,
             content: content,
             metadata: {
               filename: filename,
               type: this.getFileType(filename),
               size: content.length,
               parsedAt: new Date().toISOString(),
-              source: 'sample_data',
+              source: 'demo_data',
             },
             chunks: await this.createChunks(content, filename),
           };
 
           await this.processDocument(doc);
+          console.log(`✅ Loaded demo file: ${filename}`);
         } catch (error) {
-          console.error(`Error loading sample file ${filepath}:`, error);
+          console.error(`Error loading demo file ${filepath}:`, error);
         }
       });
 
       await Promise.all(processPromises);
 
-      console.log('✅ Sample data loaded successfully');
+      console.log('✅ Demo data loaded successfully');
     } catch (error) {
-      console.error('Failed to load sample data:', error);
+      console.error('Failed to load demo data:', error);
       throw error;
     }
   }
@@ -792,6 +795,13 @@ investing, active portfolio management, and strategic positioning for the next c
    */
   getDuckDB(): DuckDBManager {
     return this.duckdb;
+  }
+
+  /**
+   * Get VectorSearch instance for manual cache saves
+   */
+  getVectorSearch(): VectorSearchService | null {
+    return this.vectorSearch;
   }
 
   async cleanup(): Promise<void> {

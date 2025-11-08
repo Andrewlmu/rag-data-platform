@@ -32,6 +32,7 @@ const StateAnnotation = Annotation.Root({
 export class ReactAgent {
   private openai: OpenAI;
   private graph: any;
+  private callIdMap: Map<string, string> = new Map(); // Maps LangChain IDs to Responses API IDs
 
   constructor() {
     console.log('🔍 AgentConfig.llm.model:', agentConfig.llm.model);
@@ -46,6 +47,19 @@ export class ReactAgent {
     this.graph = this.buildGraph();
 
     console.log(`🤖 ReAct Agent initialized with Responses API (model: ${agentConfig.llm.model})`);
+  }
+
+  /**
+   * Convert LangChain call ID to Responses API format
+   * Responses API requires IDs to start with 'fc'
+   */
+  private convertCallId(langchainId: string): string {
+    if (!this.callIdMap.has(langchainId)) {
+      // Generate a new fc-prefixed ID
+      const fcId = `fc_${Math.random().toString(36).substring(2, 15)}`;
+      this.callIdMap.set(langchainId, fcId);
+    }
+    return this.callIdMap.get(langchainId)!;
   }
 
   /**
@@ -142,9 +156,11 @@ export class ReactAgent {
           // If AIMessage has tool calls, add them as function_call items
           if (msg.tool_calls && msg.tool_calls.length > 0) {
             for (const tc of msg.tool_calls) {
+              // Convert LangChain ID to Responses API format
+              const fcId = this.convertCallId(tc.id!);
               responsesInput.push({
-                id: tc.id,
-                call_id: tc.id,
+                id: fcId,
+                call_id: fcId,
                 name: tc.name,
                 arguments: JSON.stringify(tc.args),
                 type: 'function_call'
@@ -159,10 +175,11 @@ export class ReactAgent {
             });
           }
         } else if (msg instanceof ToolMessage) {
-          // Tool output
+          // Tool output - convert LangChain ID to Responses API format
+          const fcId = this.convertCallId(msg.tool_call_id!);
           responsesInput.push({
-            id: `${msg.tool_call_id}-output`,
-            call_id: msg.tool_call_id,
+            id: `${fcId}-output`,
+            call_id: fcId,
             output: msg.content.toString(),
             type: 'function_call_output'
           });
@@ -465,6 +482,43 @@ export class ReactAgent {
                   chunk: chunk,
                   filename: result.metadata?.filename || 'unknown',
                   similarity: parseFloat(result.similarity) || 0,
+                });
+              }
+            }
+          } catch (e) {
+            // Ignore parsing errors
+          }
+        }
+
+        // ENHANCED: Extract sources from query_structured_data tool results
+        if (msg instanceof ToolMessage && msg.name === 'query_structured_data') {
+          try {
+            const toolResult = JSON.parse(msg.content);
+            if (toolResult.found && toolResult.source) {
+              // Create a pseudo-source from SQL query results
+              const resultSummary = `SQL Query on ${toolResult.source.table} (${toolResult.source.filename}): ${toolResult.count} row(s) returned`;
+
+              sources.push({
+                chunk: resultSummary,
+                filename: toolResult.source.filename || toolResult.source.table || 'database',
+                similarity: 1.0, // Perfect match since it's from SQL
+              });
+            }
+          } catch (e) {
+            // Ignore parsing errors
+          }
+        }
+
+        // ENHANCED: Extract sources from search_dataset_metadata tool results
+        if (msg instanceof ToolMessage && msg.name === 'search_dataset_metadata') {
+          try {
+            const toolResult = JSON.parse(msg.content);
+            if (toolResult.found && toolResult.datasets) {
+              for (const dataset of toolResult.datasets.slice(0, 3)) { // Top 3 datasets
+                sources.push({
+                  chunk: `Dataset: ${dataset.tableName} (${dataset.rowCount} rows) - ${dataset.description?.substring(0, 100) || 'No description'}`,
+                  filename: dataset.filename || dataset.tableName,
+                  similarity: parseFloat(dataset.relevance) || 0.8,
                 });
               }
             }

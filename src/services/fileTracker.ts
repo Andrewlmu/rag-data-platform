@@ -106,7 +106,7 @@ export class FileTracker {
     const stats = fs.statSync(filepath);
     const hash = await this.calculateFileHash(filepath);
 
-    await this.db.exec(
+    await this.db.run(
       `
       INSERT OR REPLACE INTO ${this.tableName}
       (filepath, hash, last_modified, file_size, status)
@@ -123,7 +123,7 @@ export class FileTracker {
    * Mark file as successfully processed
    */
   async markCompleted(filepath: string): Promise<void> {
-    await this.db.exec(
+    await this.db.run(
       `
       UPDATE ${this.tableName}
       SET status = 'completed', processed_at = CURRENT_TIMESTAMP
@@ -137,7 +137,7 @@ export class FileTracker {
    * Mark file as failed
    */
   async markError(filepath: string, errorMessage: string): Promise<void> {
-    await this.db.exec(
+    await this.db.run(
       `
       UPDATE ${this.tableName}
       SET status = 'error',
