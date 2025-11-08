@@ -60,10 +60,23 @@ Output: Query results with exact source attribution (row numbers, columns)`,
         // Get table info for source attribution
         const tableInfo = duckdb.getTableInfo(tableName);
 
+        // Convert BigInt values to regular numbers for JSON serialization
+        const sanitizedResults = result.results.map((row: any) => {
+          const sanitizedRow: any = {};
+          for (const [key, value] of Object.entries(row)) {
+            if (typeof value === 'bigint') {
+              sanitizedRow[key] = Number(value);
+            } else {
+              sanitizedRow[key] = value;
+            }
+          }
+          return sanitizedRow;
+        });
+
         return {
           found: true,
           count: result.rowCount,
-          results: result.results,
+          results: sanitizedResults,
           source: {
             table: tableName,
             filename: tableInfo?.filename || 'unknown',
