@@ -37,9 +37,9 @@ export default function QueryInterface() {
     setResult(null);
 
     try {
-      // Set 2-minute timeout for long-running agent queries
+      // Set 5-minute timeout for long-running agent queries
       const response = await axios.post('/api/query', { query }, {
-        timeout: 120000, // 2 minutes for GPT-5 + tool calling
+        timeout: 300000, // 5 minutes for GPT-5 + tool calling
       });
       setResult(response.data);
     } catch (err) {

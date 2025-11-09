@@ -12,6 +12,7 @@ import { createVectorSearchTool } from '../tools/vector-search-tool';
 import { createFinishTool } from '../tools/finish-tool';
 import { createQueryStructuredDataTool } from './tools/query-structured-data.js';
 import { createSearchDatasetMetadataTool } from './tools/search-dataset-metadata.js';
+import { createAskClarificationTool } from './tools/ask-clarification.js';
 import type { AgenticQueryResult } from '../types/agent.types';
 import { agentConfig } from '../config/agent.config';
 
@@ -59,6 +60,11 @@ export class AgenticRAG {
     const finishTool = createFinishTool();
     toolRegistry.register(finishTool);
     console.log('  ✅ Finish tool registered');
+
+    // Register clarification resolver tool (uses GPT-5 for smart defaults)
+    const clarificationTool = createAskClarificationTool(this.agent.getOpenAIClient());
+    toolRegistry.register(clarificationTool);
+    console.log('  ✅ Clarification resolver tool registered');
 
     // Register structured data tools if dataProcessor is available
     if (this.dataProcessor) {

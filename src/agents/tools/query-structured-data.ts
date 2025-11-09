@@ -5,24 +5,41 @@ export function createQueryStructuredDataTool(duckdb: DuckDBManager): AgentTool 
   return {
     name: 'query_structured_data',
 
-    description: `Execute SQL queries on structured datasets (CSV/Excel files loaded into tables).
+    description: `Execute SQL queries on structured datasets (CSV/Excel).
 
-Use this when:
-- User asks about numerical data, trends, comparisons, aggregations
-- You need exact values from datasets (revenue, EBITDA, margins, etc.)
-- You need to filter, group, or calculate statistics
-- Questions like "What was X's revenue in Q3?", "Compare margins across companies", etc.
+**When to use:**
+After search_dataset_metadata provides table schema, use this to get exact values from the data.
 
-IMPORTANT:
-- Only SELECT queries are allowed (no INSERT, UPDATE, DELETE, DROP)
-- Use the table name exactly as provided from dataset metadata
-- Results are deterministic and accurate (no hallucination)
+**SQL Pattern Quick Reference:**
 
-Input:
-- sql: The SELECT query to execute
-- tableName: Table identifier from metadata search (e.g., "gamma_portfolio_quarterly_results")
+1. SIMPLE LOOKUP: "What was X's Y?"
+   SELECT [Metric] FROM table WHERE [Entity] = 'X'
+   Example: SELECT Revenue FROM sales WHERE Company = 'Acme'
 
-Output: Query results with exact source attribution (row numbers, columns)`,
+2. AGGREGATION: "average", "total", "sum"
+   SELECT AVG([Metric]) FROM table WHERE [Filter]
+   Example: SELECT AVG(Rate) FROM mortality WHERE Period = 2019
+
+3. COMPARISON: "which had highest"
+   SELECT [Entity], [Metric] FROM table ORDER BY [Metric] DESC LIMIT 10
+   Example: SELECT Country, Rate FROM mortality ORDER BY Rate DESC LIMIT 10
+
+4. TREND: "show over time"
+   SELECT [Period], [Metric] FROM table WHERE [Entity] = 'X' ORDER BY [Period]
+   Example: SELECT Year, GDP FROM economics WHERE Country = 'USA' ORDER BY Year
+
+**Critical SQL rules:**
+- Use EXACT column names from schema (case-sensitive, including spaces)
+- If schema shows "First Tooltip", write "First Tooltip" not FirstTooltip
+- Separate columns need separate filters: Quarter = 'Q3' AND Year = 2024
+- For comparisons, return multiple rows (10+), not just min/max
+- Only SELECT allowed (no INSERT, UPDATE, DELETE, DROP)
+
+**Example usage:**
+Schema: [{name: "Period", type: "INTEGER"}, {name: "Location", type: "TEXT"}, {name: "Rate", type: "REAL"}]
+SQL: SELECT Location, Rate FROM mortality WHERE Period = 2019 ORDER BY Rate DESC LIMIT 10
+
+Returns: Exact data rows with source attribution.`,
 
     parameters: {
       type: 'object',

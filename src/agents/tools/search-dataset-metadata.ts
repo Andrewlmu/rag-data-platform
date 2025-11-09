@@ -5,27 +5,41 @@ export function createSearchDatasetMetadataTool(vectorSearch: VectorSearch): Age
   return {
     name: 'search_dataset_metadata',
 
-    description: `Search for relevant structured datasets (CSV/Excel files) based on semantic query.
+    description: `Find structured datasets (CSV/Excel) by semantic search.
 
-Use this FIRST when user asks about structured data to find which datasets are available.
+**When to use:**
+This is your FIRST STEP for any structured data query. Call this before query_structured_data.
 
-Use this when:
-- User asks about financial metrics, company data, portfolio information
-- You need to find which tables/datasets contain relevant information
-- Before querying structured data, to determine which table to query
+**What you get back:**
+- tableName: Use this identifier in query_structured_data
+- schema: Array of {name, type} for each column - CRITICAL for accurate SQL
+- description: What data the table contains
+- rowCount: Number of rows in the dataset
+- relevance: How well this dataset matches your query
 
-Returns: Metadata descriptions of matching datasets including:
-- Table names (for use with query_structured_data)
-- Dataset descriptions (what data it contains)
-- **Schema (CRITICAL): Array of {name, type} for each column - USE THIS FOR ACCURATE SQL QUERIES**
-- Row counts and coverage information
+**Schema usage (CRITICAL):**
+The schema shows EXACT column names. Use them exactly as provided:
+- If schema shows "First Tooltip" → Use "First Tooltip" in SQL (with quotes)
+- If schema shows separate Quarter and Year columns → Use separate filters
+- Column names are case-sensitive
 
-IMPORTANT: The schema field contains EXACT column names - use these in your WHERE clauses!
-Example: If schema shows [{name: "Quarter", type: "TEXT"}, {name: "Year", type: "INTEGER"}]
-Then write: WHERE Quarter = 'Q3' AND Year = 2024
-NOT: WHERE Quarter = 'Q3 2024'
+**Example response:**
+{
+  tableName: "infant_mortality",
+  schema: [
+    {name: "Period", type: "INTEGER"},
+    {name: "Location", type: "TEXT"},
+    {name: "First Tooltip", type: "TEXT"}
+  ],
+  rowCount: 37440
+}
 
-Example: "quarterly financials" → finds tables with quarterly financial data`,
+Then in query_structured_data: SELECT Location, "First Tooltip" FROM infant_mortality WHERE Period = 2019
+
+**Anti-loop rule:**
+- Maximum 2 consecutive calls to this tool
+- After finding datasets, you MUST proceed to query_structured_data
+- Don't search for perfect auxiliary tables - work with what you found`,
 
     parameters: {
       type: 'object',

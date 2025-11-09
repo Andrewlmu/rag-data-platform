@@ -12,13 +12,28 @@ export function createFinishTool(): AgentTool {
   return {
     name: 'finish',
 
-    description: `Use this tool when you have gathered enough information to provide a comprehensive answer to the user's question.
-Call this tool with your final answer after you have:
-1. Searched for relevant information using available tools
-2. Analyzed the results
-3. Formulated a complete response
+    description: `Return your final answer to the user. REQUIRED when you have the complete answer.
 
-Do NOT call this tool if you still need more information - continue using other tools instead.`,
+**When to call:**
+- After gathering all necessary data from other tools
+- When you have formulated a complete response
+- This is MANDATORY - you cannot end without calling finish
+
+**What to include in your answer:**
+- Direct answer to the user's question with specific facts (numbers, names, dates)
+- For comparisons: show multiple entities with their values
+- Source citations (table name or filename)
+- Brief explanation if data doesn't perfectly match request
+
+**Example answer format:**
+"The top 3 countries with highest infant mortality rates in 2019 were:
+1. Nigeria: 75.2 deaths per 1000 births
+2. Chad: 72.1 deaths per 1000 births
+3. Somalia: 70.8 deaths per 1000 births
+
+(Source: infant_mortality table)"
+
+Do NOT call this if you still need more data - use other tools first.`,
 
     parameters: {
       type: 'object',

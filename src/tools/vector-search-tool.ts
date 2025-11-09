@@ -18,9 +18,23 @@ export function createVectorSearchTool(
   return {
     name: 'vector_search',
 
-    description: `Search the document vector database for relevant information from uploaded documents.
-Use this tool when you need to find information from existing uploaded documents.
-Returns the most relevant document chunks with similarity scores${parentChildRetriever ? ' and full parent context' : ''}.`,
+    description: `Search text documents (PDFs, TXT files) for relevant information.
+
+**When to use:**
+- User asks conceptual questions ("What is...", "Explain...", "Tell me about...")
+- Need information from unstructured text documents
+- After structured data search finds no results
+
+**What you get:**
+- Relevant text chunks from documents
+- Similarity scores (0-1, higher is better)
+- Source filenames and locations${parentChildRetriever ? '\n- Full parent context for better understanding (hierarchical mode)' : ''}
+
+**Example:**
+Query: "risk factors for cardiovascular disease"
+Returns: Relevant paragraphs from health documents with 0.85+ similarity
+
+Use query_structured_data for numerical/tabular data instead.`,
 
     parameters: {
       type: 'object',

@@ -54,6 +54,13 @@ export class ReactAgent {
   }
 
   /**
+   * Get OpenAI client for tool access
+   */
+  getOpenAIClient(): OpenAI {
+    return this.openai;
+  }
+
+  /**
    * Convert LangChain call ID to Responses API format
    * Responses API requires IDs to start with 'fc'
    */
@@ -79,10 +86,10 @@ export class ReactAgent {
       // Start with LLM
       .addEdge(START, 'llm')
 
-      // After LLM, check if it wants to use tools
+      // After LLM, check if should use tools
       .addConditionalEdges('llm', this.shouldUseTool.bind(this), {
-        useTool: 'tools',
-        finish: END,
+        useTool: 'tools',  // Has tool calls, execute them
+        finish: END,       // No tool calls (shouldn't happen with tool_choice='required')
       })
 
       // After tools, go to router
@@ -94,9 +101,10 @@ export class ReactAgent {
         end: END,
       });
 
-    // Compile with increased recursion limit for complex multi-step queries
+    // Compile the workflow with increased recursion limit
+    // @ts-ignore - recursionLimit exists at runtime but may not be in types
     return workflow.compile({
-      recursionLimit: 75, // Allow more loops for complex reasoning (increased from 50)
+      recursionLimit: 50, // Allow up to 50 loops for complex multi-step queries
     });
   }
 
@@ -197,7 +205,7 @@ export class ReactAgent {
         input: responsesInput,
         instructions: systemInstructions,
         tools: tools,
-        tool_choice: 'auto', // Let model decide when to use tools
+        tool_choice: 'required', // Force model to ALWAYS call a tool (eliminates plain text responses)
         temperature: agentConfig.llm.temperature,
         max_output_tokens: agentConfig.llm.maxTokens,
       });
@@ -438,6 +446,7 @@ export class ReactAgent {
     }
 
     // Otherwise finish (LLM responded without calling tools)
+    // Note: With tool_choice='required', this shouldn't happen
     return 'finish';
   }
 
@@ -468,6 +477,14 @@ export class ReactAgent {
 
     console.log(`\n${'='.repeat(60)}`);
     console.log(`🤖 Agentic RAG Query: "${question}"`);
+    console.log(`${'='.repeat(60)}`);
+    console.log(`📋 Agent Configuration:`);
+    console.log(`   Model: ${agentConfig.llm.model}`);
+    console.log(`   Temperature: ${agentConfig.llm.temperature}`);
+    console.log(`   Max Output Tokens: ${agentConfig.llm.maxTokens}`);
+    console.log(`   Max Loops (Config): ${agentConfig.maxLoops}`);
+    console.log(`   Recursion Limit (Graph): 50`);
+    console.log(`   Timeout: ${agentConfig.timeout}ms`);
     console.log(`${'='.repeat(60)}\n`);
 
     try {
@@ -582,7 +599,7 @@ export class ReactAgent {
 
       console.log(`\n${'='.repeat(60)}`);
       console.log(`✅ Agentic RAG Complete (${duration}ms)`);
-      console.log(`   Loops: ${result.loopCount}`);
+      console.log(`   Loops: ${result.loopCount}/${agentConfig.maxLoops} (config) / 50 (recursion limit)`);
       console.log(`   Tools: ${[...new Set(toolsUsed)].join(', ') || 'none'}`);
       console.log(`   Sources: ${sources.length} documents`);
       console.log(`${'='.repeat(60)}\n`);
